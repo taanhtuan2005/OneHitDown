@@ -32,7 +32,7 @@ Mọi phản hồi, phân tích, đề xuất và thao tác viết code trong d�
 ## 3. NGUYÊN TẮC "CHƯA RÕ THÌ PHẢI HỎI" (ASK BEFORE ACTING)
 - Nếu phát hiện:
   1. Bất kỳ sự mâu thuẫn nào giữa các tài liệu.
-  2. Một yêu cầu còn bỏ ngỏ hoặc có thể triển khai theo nhiều hướng kỹ thuật khác nhau.
+  2. Một yêu cầu còn bỏ ngỏ hoặc có thể triển khai theo nhiều hướng kỹ thuật khác nhau (ví dụ: cách đọc phím qua `Input.GetKey` hay new `Input System`).
   3. Thiếu thông tin chi tiết mà tài liệu chưa đặc tả.
 - **HÀNH ĐỘNG BẮT BUỘC:** 
   - DỪNG LẠI NGAY LẬP TỨC.
@@ -46,3 +46,61 @@ Mọi phản hồi, phân tích, đề xuất và thao tác viết code trong d�
 - Mỗi thành viên chỉ chỉnh sửa trong thư mục code, bộ Prefab và Scene của riêng mình.
 - Giữ nguyên toàn bộ comment kỹ thuật, docstrings và quy chuẩn kiến trúc: Component-based, Prefab-First, Event-Driven, `IResettable`.
 
+---
+
+## 5. CHUẨN API UNITY 6 & C# (BẮT BUỘC)
+
+Dự án chạy trên **Unity 6 (6000.x)**. Tuyệt đối không dùng các API đã bị deprecated:
+
+| Cấm (deprecated) | Dùng thay thế |
+| :--- | :--- |
+| `rb.velocity` | `rb.linearVelocity` |
+| `FindObjectsOfType<T>()` | `FindObjectsByType<T>(FindObjectsSortMode.None)` |
+| `FindObjectOfType<T>()` | `FindFirstObjectByType<T>()` |
+
+- **Đóng gói dữ liệu:** mọi biến cần chỉnh trong Inspector phải khai báo `[SerializeField] private Type tenBien;` — **cấm** `public Type tenBien;`. Script khác chỉ được đọc qua thuộc tính biểu thức: `public Type TenThuocTinh => tenBien;` (đúng mẫu `public bool IsDead => isDead;` trong Schema).
+- **Không cấp phát rác trong vòng lặp (Zero GC Alloc):** cấm gọi `GetComponent<T>()`, `Find*`, LINQ (`.OfType<>()`, `.ToArray()`,...), `new List/Array` hoặc ghép chuỗi động bên trong `Update()` / `FixedUpdate()`. Toàn bộ tham chiếu phải cache trong `Awake()` / `Start()`. **Ngoại lệ duy nhất:** format text HUD — chỉ dựng lại chuỗi khi giá trị số thực sự thay đổi.
+- **So sánh Tag:** dùng `CompareTag("Hazard")` thay vì `tag == "Hazard"` (tránh cấp phát chuỗi).
+- **Kiểm tra va chạm:** theo đúng đặc tả của từng file — `PlayerController` và `CollectibleItem` so Tag (`"Hazard"` / `"Player"`); bẫy và cơ quan lấy component qua `col.GetComponent<PlayerController>()`. Không tự đổi cơ chế này.
+
+---
+
+## 6. AN TOÀN GIT & FILE `.meta` (CHỐNG HỎNG ASSET)
+
+- **Cấm sửa tay `.meta`:** mỗi file `.cs`, `.png`, `.prefab`, `.unity`, `.asset` đều có file `.meta` đi kèm giữ GUID. Không tự tạo, xóa, đổi GUID hay chỉnh nội dung `.meta` khi người dùng không yêu cầu rõ ràng.
+- **Đổi tên / di chuyển asset:** phải thực hiện trong Unity Editor, hoặc di chuyển nguyên cặp `<file>` + `<file>.meta`. Cấm để `.meta` mồ côi hoặc tạo asset trùng GUID.
+- **Line Endings:** thống nhất sử dụng định dạng dòng **LF** cho tất cả file script `.cs` để tránh xung đột Git trên Windows.
+- **Bảo vệ Scene (Zero Conflict):**
+  - Không tự mở, sửa hay lưu file Scene màn chơi của người khác. Quyền sở hữu theo `Phan_cong.md` Mục II & IV:
+    - `Level_01.unity` — Tuấn | `Level_02.unity` — Trung | `Level_03.unity` — Tuyên | `Level_04.unity` + `MainMenu.unity` — Tú | `Level_05.unity` — Uyên.
+  - Scene nháp cá nhân để test cơ chế: `Assets/Scenes/Dev/Dev_Nguoi1..5.unity`.
+  - Chỉ commit mã nguồn `.cs`, `.prefab` và file Scene thuộc quyền phụ trách.
+
+---
+
+## 7. PREFAB-FIRST — TÍNH TỰ CHỨA (SELF-CONTAINED)
+
+- Script gắn trên Prefab (Bẫy, Cơ quan, Quả, Bệ) **không được** giữ tham chiếu cứng tới GameObject nằm ngoài chính Prefab đó. Tham chiếu tới Collider con bên trong Prefab là hợp lệ (ví dụ child `flameHitbox` của `FireTrap` hoặc child `DeathTriggerZone` của `DeathPit`).
+- Giao tiếp với nhân vật và hệ thống phải thông qua Component hoặc Tag/Collision — không kéo-thả Scene object.
+- **Ngoại lệ duy nhất (đúng theo Schema):** `GameManager` được giữ tham chiếu Scene (`startPoint`, `exitGate`, `player1Prefab`, `player2Prefab`, `soulTetherPrefab`) và truy cập `GameManager.Instance`; các script Menu/UI thuộc Module 4 & 5 được phép tham chiếu Scene theo đặc tả. Ngoài các trường hợp này, cấm hard-reference chéo Scene.
+- Mọi chỉnh sửa thông số Bẫy / Nhân vật / Quả phải **Apply vào Prefab gốc** tại `Assets/Prefabs/`, không chỉnh Instance trong Scene.
+
+---
+
+## 8. QUY CHUẨN COMMENT & VỊ TRÍ FILE
+
+- Comment tiếng Việt có dấu, ngắn gọn, nêu mục đích hàm và sự kiện phát ra; field `[SerializeField]` ghi chú đơn vị/ý nghĩa khớp mô tả trong `SCHEMA_CHI_TIET.md`.
+- Giữ nguyên toàn bộ comment kỹ thuật / docstring sẵn có của người khác.
+- File đặt đúng thư mục theo Module: `Assets/Scripts/Core/`, `Assets/Scripts/Player/`, `Assets/Scripts/Traps/`, `Assets/Scripts/Items/`, `Assets/Scripts/Level/`, `Assets/Scripts/UI/`.
+
+---
+
+## 9. HÀNH VI CỦA AI KHI SINH MÃ
+
+- **Cấm code rút gọn:** không dùng `// ... existing code ...`, không để `// TODO` thay cho logic, không bỏ sót nhánh xử lý. File script xuất ra phải đầy đủ và biên dịch được.
+- **Chỉ dùng API có sẵn:** Unity built-in + các package đã khai báo trong `Packages/manifest.json`. Cấm thêm package / plugin / asset ngoài `Assets/Art/` khi chưa được duyệt.
+- **Báo cáo sau mỗi script** (đủ 4 mục, ngắn gọn):
+  1. Đường dẫn file và Namespace.
+  2. Script gắn vào GameObject / Prefab nào.
+  3. Tag & Layer cần đặt.
+  4. Bảng field Inspector — **lấy đúng giá trị từ Mục 3 & Mục 4 của `SCHEMA_CHI_TIET.md`**, không tự đặt số mới. Nếu Schema không có giá trị tương ứng, dừng lại và hỏi theo Mục 3.
