@@ -1,0 +1,33 @@
+# Tự động chuẩn hóa line endings
+* text=auto
+
+# Ép cố định CRLF cho script và file text Unity (khớp Windows / Phương án A)
+*.cs text eol=crlf
+*.unity text eol=crlf
+*.prefab text eol=crlf
+*.asset text eol=crlf
+*.meta text eol=crlf
+*.mat text eol=crlf
+*.json text eol=crlf
+*.md text eol=crlf
+*.txt text eol=crlf
+*.xml text eol=crlf
+*.shader text eol=crlf
+*.cginc text eol=crlf
+
+# Đánh dấu nhị phân tuyệt đối cho hình ảnh, âm thanh, font, thư viện (chống hỏng file)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.psd binary
+*.wav binary
+*.mp3 binary
+*.ogg binary
+*.ttf binary
+*.otf binary
+*.dll binary
+*.so binary
+*.dylib binary
+*.zip binary
+*.tar.gz binary
+
