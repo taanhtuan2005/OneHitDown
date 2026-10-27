@@ -58,18 +58,20 @@ Dự án chạy trên **Unity 6 (6000.x)**. Tuyệt đối không dùng các API
 | `FindObjectsOfType<T>()` | `FindObjectsByType<T>(FindObjectsSortMode.None)` |
 | `FindObjectOfType<T>()` | `FindFirstObjectByType<T>()` |
 
-- **Đóng gói dữ liệu:** mọi biến cần chỉnh trong Inspector phải khai báo `[SerializeField] private Type tenBien;` — **cấm** `public Type tenBien;`. Script khác chỉ được đọc qua thuộc tính biểu thức: `public Type TenThuocTinh => tenBien;` (đúng mẫu `public bool IsDead => isDead;` trong Schema).
+- **Đóng gói dữ liệu:** mọi biến cần chỉnh trong Inspector phải khai báo `[SerializeField] private Type tenBien;` — **cấm** `public Type tenBien;`. Ngoại lệ duy nhất: các field `[SerializeField] protected` của lớp cơ sở như `TrapBase` được giữ nguyên đúng theo Schema để các lớp con kế thừa đọc trực tiếp. Script khác truy cập dữ liệu qua thuộc tính biểu thức: `public Type TenThuocTinh => tenBien;` (đúng mẫu `public bool IsDead => isDead;` trong Schema).
 - **Không cấp phát rác trong vòng lặp (Zero GC Alloc):** cấm gọi `GetComponent<T>()`, `Find*`, LINQ (`.OfType<>()`, `.ToArray()`,...), `new List/Array` hoặc ghép chuỗi động bên trong `Update()` / `FixedUpdate()`. Toàn bộ tham chiếu phải cache trong `Awake()` / `Start()`. **Ngoại lệ duy nhất:** format text HUD — chỉ dựng lại chuỗi khi giá trị số thực sự thay đổi.
 - **So sánh Tag:** dùng `CompareTag("Hazard")` thay vì `tag == "Hazard"` (tránh cấp phát chuỗi).
-- **Kiểm tra va chạm:** theo đúng đặc tả của từng file — `PlayerController` và `CollectibleItem` so Tag (`"Hazard"` / `"Player"`); bẫy và cơ quan lấy component qua `col.GetComponent<PlayerController>()`. Không tự đổi cơ chế này.
+- **Kiểm tra va chạm:** theo đúng đặc tả của từng file trong Schema (PlayerController và CollectibleItem so Tag qua `CompareTag("Hazard")` / `CompareTag("Player")`; bẫy và cơ quan kiểm tra va chạm với `PlayerController`). Không tự đổi cơ chế này.
 
 ---
 
 ## 6. AN TOÀN GIT & FILE `.meta` (CHỐNG HỎNG ASSET)
 
+- **Cấm commit file rác / sinh tự động:** tuyệt đối không commit các thư mục và file sinh tự động: `Library/`, `Temp/`, `obj/`, `Logs/`, `Build/`, `UserSettings/`, `*.csproj`, `*.sln` (chỉ commit các thư mục mã nguồn `Assets/`, `Packages/`, `ProjectSettings/`, `Docs/`, tài liệu dự án và file cấu hình theo phân công).
+- **Cấm tự ý thêm Tag/Layer mới:** chỉ sử dụng danh mục Tag & Layer chuẩn đã định nghĩa tại Mục 1. Chỉ Người 1 phụ trách cấu hình và commit `ProjectSettings/TagManager.asset`.
 - **Cấm sửa tay `.meta`:** mỗi file `.cs`, `.png`, `.prefab`, `.unity`, `.asset` đều có file `.meta` đi kèm giữ GUID. Không tự tạo, xóa, đổi GUID hay chỉnh nội dung `.meta` khi người dùng không yêu cầu rõ ràng.
 - **Đổi tên / di chuyển asset:** phải thực hiện trong Unity Editor, hoặc di chuyển nguyên cặp `<file>` + `<file>.meta`. Cấm để `.meta` mồ côi hoặc tạo asset trùng GUID.
-- **Line Endings:** thống nhất sử dụng định dạng dòng **LF** cho tất cả file script `.cs` để tránh xung đột Git trên Windows.
+- **Line Endings:** giữ nguyên định dạng dòng mặc định của môi trường/file hiện tại (CRLF trên Windows), tuyệt đối không tự ý chuyển đổi hàng loạt (convert line endings) gây nhiễu Git diff.
 - **Bảo vệ Scene (Zero Conflict):**
   - Không tự mở, sửa hay lưu file Scene màn chơi của người khác. Quyền sở hữu theo `Phan_cong.md` Mục II & IV:
     - `Level_01.unity` — Tuấn | `Level_02.unity` — Trung | `Level_03.unity` — Tuyên | `Level_04.unity` + `MainMenu.unity` — Tú | `Level_05.unity` — Uyên.
