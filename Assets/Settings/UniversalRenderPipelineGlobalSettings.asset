@@ -61,7 +61,6 @@ MonoBehaviour:
       - rid: 5406026383943008257
       - rid: 5406026383943008258
       - rid: 5406026383943008259
-      - rid: 5406026383943008260
       - rid: 5406026383943008261
       - rid: 5406026383943008262
       - rid: 5406026383943008263
@@ -202,12 +201,6 @@ MonoBehaviour:
       data:
         m_Version: 0
         m_UberPostShader: {fileID: 4800000, guid: fe4f13c1004a07d4ea1e30bfd0326d9e, type: 3}
-    - rid: 5406026383943008260
-      type: {class: ScreenSpaceReflectionPersistentResources, ns: UnityEngine.Rendering.Universal, asm: Unity.RenderPipelines.Universal.Runtime}
-      data:
-        m_Shader: {fileID: 4800000, guid: 7b3e6785f5f6b634794df3a85a2a35da, type: 3}
-        m_BlitShader: {fileID: 4800000, guid: 815c625bb9d4fe240a4ccf42ca3899cb, type: 3}
-        m_Version: 0
     - rid: 5406026383943008261
       type: {class: URPReflectionProbeSettings, ns: UnityEngine.Rendering, asm: Unity.RenderPipelines.Universal.Runtime}
       data:
