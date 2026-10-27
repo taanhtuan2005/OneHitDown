@@ -102,7 +102,7 @@
    * 5 nhánh tính năng riêng:
      * `feature/player` (Người 1 - Tuấn)
      * `feature/lethal-traps` (Người 2 - Trung)
-     * `feature/interactive-traps` (Người 3 - Tuyên)
+     * `feature/interactive-traps` (Người 3 - Tuyên) - feature/interactive-traps_tvt
      * `feature/items-objectives` (Người 4 - Tú)
      * `feature/core-management` (Người 5 - Uyên)
 
