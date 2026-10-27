@@ -1,0 +1,11 @@
+﻿Pack: 12 Indie Game Music Loops (Chiptune BGM)
+Author: SubspaceAudio (Juhani Junkala)
+Source: https://opengameart.org/content/12-music-loops
+License: CC0 1.0 Universal (Public Domain Dedication)
+Tracks mapped for One Hit Down:
+- bgm_menu.ogg (Main Menu / Level Select)
+- bgm_level1_ruins.ogg (Level 1: Verdant Ancient Ruins)
+- bgm_level2_grotto.ogg (Level 2: Buzzsaw Sandstone Grotto)
+- bgm_level3_ice_ember.ogg (Level 3: Catacombs of Ice & Ember)
+- bgm_level4_idols.ogg (Level 4: Sanctuary of Crushing Idols)
+- bgm_level5_chaos_nexus.ogg (Level 5: The Chaos Core Nexus)
