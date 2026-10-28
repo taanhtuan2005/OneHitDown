@@ -100,5 +100,56 @@ namespace OneHitDown.Tests
             Assert.That(player.BoostHistory[0].y, Is.EqualTo(20f));
             Assert.That(anim.CurrentState, Is.EqualTo("Jump"), "Animator phải chuyển sang clip Jump");
         }
+
+        [Test]
+        [Description("TC-TR-10 (Edge): No Animator Tolerance — Khi animator == null, đệm nhún vẫn đẩy player an toàn không văng exception")]
+        public void TC_TR_10_NoAnimatorTolerance()
+        {
+            GameObject go = new GameObject("Trampoline_NoAnim");
+            BoxCollider2D col = go.AddComponent<BoxCollider2D>();
+            col.isTrigger = true;
+            TrampolineTrap trap = go.AddComponent<TrampolineTrap>();
+
+            TestRuntime.SetField(trap, "bounceDirection", Vector2.up);
+            TestRuntime.SetField(trap, "bounceForce", 20f);
+            TestRuntime.SetField(trap, "animator", null);
+
+            TestRuntime.InvokeLifecycle(trap, "Awake");
+
+            var (_, player, playerCol, _) = PlayerController.CreateMockPlayer();
+            Assert.DoesNotThrow(() => TestRuntime.InvokeLifecycle(trap, "OnTriggerEnter2D", playerCol));
+
+            Assert.That(player.BoostCount, Is.EqualTo(1));
+            Assert.That(player.BoostHistory[0].y, Is.EqualTo(20f));
+        }
+
+        [Test]
+        [Description("TC-TR-11 (Edge): Awake Auto Finds Animator — Khi không gán trong Inspector, Awake() tự GetComponent<Animator>()")]
+        public void TC_TR_11_AwakeAutoFindsAnimator()
+        {
+            GameObject go = new GameObject("Trampoline_AutoFind");
+            Animator animOnGo = go.AddComponent<Animator>();
+            TrampolineTrap trap = go.AddComponent<TrampolineTrap>();
+
+            TestRuntime.SetField(trap, "animator", null);
+            TestRuntime.InvokeLifecycle(trap, "Awake");
+
+            Animator resolved = TestRuntime.GetField<Animator>(trap, "animator");
+            Assert.That(resolved, Is.Not.Null, "Awake phải tự cache Animator từ GameObject");
+            Assert.That(resolved, Is.SameAs(animOnGo));
+        }
+
+        [Test]
+        [Description("TC-TR-12 (Edge): Negative Force Reset — bounceForce <= 0 tự reset về DefaultBounceForce (20f)")]
+        public void TC_TR_12_NegativeForceReset()
+        {
+            GameObject go = new GameObject("Trampoline_BadForce");
+            TrampolineTrap trap = go.AddComponent<TrampolineTrap>();
+
+            TestRuntime.SetField(trap, "bounceForce", -5f);
+            TestRuntime.InvokeLifecycle(trap, "Awake");
+
+            Assert.That(trap.BounceForce, Is.EqualTo(20f), "Lực bật âm phải tự reset về 20f");
+        }
     }
 }

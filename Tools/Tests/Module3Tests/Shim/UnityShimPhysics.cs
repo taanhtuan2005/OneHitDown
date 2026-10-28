@@ -375,5 +375,11 @@ namespace UnityEngine
 
             return field.GetValue(target);
         }
+
+        /// <summary>Lấy giá trị field private [SerializeField] kèm ép kiểu về <typeparamref name="T"/>.</summary>
+        public static T GetField<T>(object target, string fieldName)
+        {
+            return (T)GetField(target, fieldName);
+        }
     }
 }
