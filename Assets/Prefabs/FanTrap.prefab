@@ -87,10 +87,11 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5257885898493726003}
+  - component: {fileID: 526485587938818397}
   - component: {fileID: 4771090676939506468}
   - component: {fileID: 5202671923868352044}
   - component: {fileID: 3591977386131062810}
-  m_Layer: 10
+  m_Layer: 8
   m_Name: FanTrap
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -113,6 +114,33 @@ Transform:
   - {fileID: 3608858471927934752}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!50 &526485587938818397
+Rigidbody2D:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8392167921851510843}
+  m_BodyType: 1
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 1
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 0
 --- !u!212 &4771090676939506468
 SpriteRenderer:
   serializedVersion: 3

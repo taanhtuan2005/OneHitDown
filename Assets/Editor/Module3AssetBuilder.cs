@@ -442,7 +442,14 @@ namespace OneHitDown.EditorTools
             try
             {
                 go.tag = "Untagged";
-                go.layer = layerTraps;
+                // Thân quạt là bệ đứng được: layer Ground để CheckGround() của PlayerController nhận diện và cho nhảy.
+                // Luồng gió ở child WindZone vẫn giữ layer Traps.
+                go.layer = ResolveLayer("Ground", 8);
+
+                // Rigidbody2D Kinematic ở gốc: để trigger của child WindZone được chuyển lên script FanTrap.
+                Rigidbody2D fanBody = go.AddComponent<Rigidbody2D>();
+                fanBody.bodyType = RigidbodyType2D.Kinematic;
+                fanBody.useFullKinematicContacts = true;
 
                 SpriteRenderer sr = go.AddComponent<SpriteRenderer>();
                 sr.sprite = LoadSprite($"{TrapsArtPath}/Fan/On (24x8).png", "On (24x8)_0");
@@ -608,7 +615,13 @@ namespace OneHitDown.EditorTools
                 triggerCol.size = new Vector2(3.0625f, 5.2f);
                 triggerCol.offset = new Vector2(0f, 0.1f);
 
-                go.AddComponent<IceSurface>();
+                IceSurface ice = go.AddComponent<IceSurface>();
+
+                // Hạt bụi tuyết (Ice Particle.png) bay lên từ mặt băng khi nhân vật trượt
+                ParticleSystem dust = CreateIceDustParticle(go.transform);
+                SerializedObject iceSo = new SerializedObject(ice);
+                SetProperty(iceSo, "iceParticle", dust);
+                iceSo.ApplyModifiedPropertiesWithoutUndo();
 
                 SavePrefab(go, "IceRoad");
             }
@@ -654,6 +667,65 @@ namespace OneHitDown.EditorTools
             {
                 UnityEngine.Object.DestroyImmediate(go);
             }
+        }
+
+        /// <summary>
+        /// Tạo child "IceDust" (ParticleSystem) dùng sprite Ice Particle.png; Stop khi khởi tạo,
+        /// IceSurface sẽ Play/Stop theo sự có mặt của nhân vật.
+        /// </summary>
+        private static ParticleSystem CreateIceDustParticle(Transform parent)
+        {
+            string texPath = $"{TrapsArtPath}/Sand Mud Ice/Ice Particle.png";
+            string matPath = $"{AnimationsDir}/IceDust.mat";
+
+            Material mat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
+            if (mat == null)
+            {
+                mat = new Material(Shader.Find("Sprites/Default"));
+                mat.name = "IceDust";
+                AssetDatabase.CreateAsset(mat, matPath);
+            }
+
+            mat.mainTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(texPath);
+            EditorUtility.SetDirty(mat);
+
+            GameObject child = new GameObject("IceDust");
+            child.transform.SetParent(parent, false);
+            child.transform.localPosition = new Vector3(0f, 0.2f, 0f);
+
+            ParticleSystem ps = child.AddComponent<ParticleSystem>();
+            ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+
+            ParticleSystem.MainModule main = ps.main;
+            main.playOnAwake = false;
+            main.loop = true;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(0.4f, 0.8f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(0.4f, 1.2f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.4f, 0.8f);
+            main.startColor = new Color(0.85f, 0.95f, 1f, 0.9f);
+            main.gravityModifier = -0.1f;
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+
+            ParticleSystem.EmissionModule emission = ps.emission;
+            emission.rateOverTime = 30f;
+
+            ParticleSystem.ShapeModule shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Box;
+            shape.scale = new Vector3(3f, 0.1f, 0.1f);
+
+            ParticleSystem.ColorOverLifetimeModule col = ps.colorOverLifetime;
+            col.enabled = true;
+            Gradient fade = new Gradient();
+            fade.SetKeys(
+                new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
+                new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0f, 1f) });
+            col.color = fade;
+
+            ParticleSystemRenderer psr = child.GetComponent<ParticleSystemRenderer>();
+            psr.sharedMaterial = mat;
+            psr.sortingOrder = 11;
+
+            return ps;
         }
 
         private static void SavePrefab(GameObject go, string name)

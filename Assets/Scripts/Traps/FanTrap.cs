@@ -47,6 +47,16 @@ namespace OneHitDown.Traps
                 spriteRenderer = GetComponent<SpriteRenderer>();
             }
 
+            // Collider gió nằm ở child WindZone: Unity 2D chỉ chuyển sự kiện trigger của child lên script ở gốc
+            // khi gốc có Rigidbody2D. Bổ sung Rigidbody2D Kinematic nếu prefab chưa có để quạt luôn thổi được.
+            if (!TryGetComponent(out Rigidbody2D body))
+            {
+                body = gameObject.AddComponent<Rigidbody2D>();
+            }
+
+            body.bodyType = RigidbodyType2D.Kinematic;
+            body.useFullKinematicContacts = true;
+
             ValidateWindDirection();
             ValidateWindForce();
             ValidateAnimationFrames();
