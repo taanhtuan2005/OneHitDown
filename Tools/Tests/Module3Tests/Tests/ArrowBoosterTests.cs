@@ -194,5 +194,68 @@ namespace OneHitDown.Tests
             Assert.That(booster.IsReady, Is.True, "Vật thể không phải Player không được kích hoạt mũi tên");
             Assert.That(col.enabled, Is.True);
         }
+
+        [Test]
+        [Description("TC-AB-06 (Edge): No Renderer & Animator Tolerance — Khi spriteRenderer và animator null, kích hoạt và hồi chiêu an toàn không throw")]
+        public void TC_AB_06_NoRendererTolerance()
+        {
+            GameObject go = new GameObject("Booster_NoVisual");
+            CircleCollider2D col = go.AddComponent<CircleCollider2D>();
+            col.isTrigger = true;
+            ArrowBooster booster = go.AddComponent<ArrowBooster>();
+
+            TestRuntime.SetField(booster, "boosterCollider", col);
+            TestRuntime.SetField(booster, "spriteRenderer", null);
+            TestRuntime.SetField(booster, "animator", null);
+            TestRuntime.SetField(booster, "reactivateDelay", 0.5f);
+            TestRuntime.InvokeLifecycle(booster, "Awake");
+
+            var (_, player, playerCol, _) = PlayerController.CreateMockPlayer();
+            Assert.DoesNotThrow(() => TestRuntime.InvokeLifecycle(booster, "OnTriggerEnter2D", playerCol));
+            Assert.That(booster.IsReady, Is.False);
+
+            // Tua qua thời gian hồi
+            Assert.DoesNotThrow(() => TestRuntime.AdvanceTime(0.6f));
+            Assert.That(booster.IsReady, Is.True);
+        }
+
+        [Test]
+        [Description("TC-AB-07 (Edge): Awake Auto Finds Components — Khi để trống trong Inspector, Awake() tự GetComponent collider, renderer, animator")]
+        public void TC_AB_07_AwakeAutoFindsComponents()
+        {
+            GameObject go = new GameObject("Booster_AutoFind");
+            CircleCollider2D colOnGo = go.AddComponent<CircleCollider2D>();
+            SpriteRenderer srOnGo = go.AddComponent<SpriteRenderer>();
+            Animator animOnGo = go.AddComponent<Animator>();
+            ArrowBooster booster = go.AddComponent<ArrowBooster>();
+
+            TestRuntime.SetField(booster, "boosterCollider", null);
+            TestRuntime.SetField(booster, "spriteRenderer", null);
+            TestRuntime.SetField(booster, "animator", null);
+
+            TestRuntime.InvokeLifecycle(booster, "Awake");
+
+            Assert.That(TestRuntime.GetField<CircleCollider2D>(booster, "boosterCollider"), Is.SameAs(colOnGo));
+            Assert.That(TestRuntime.GetField<SpriteRenderer>(booster, "spriteRenderer"), Is.SameAs(srOnGo));
+            Assert.That(TestRuntime.GetField<Animator>(booster, "animator"), Is.SameAs(animOnGo));
+        }
+
+        [Test]
+        [Description("TC-AB-08 (Edge): Invalid Config Reset — Hướng zero, force âm, delay âm tự reset về giá trị chuẩn")]
+        public void TC_AB_08_InvalidConfigReset()
+        {
+            GameObject go = new GameObject("Booster_BadConfig");
+            ArrowBooster booster = go.AddComponent<ArrowBooster>();
+
+            TestRuntime.SetField(booster, "boostDirection", Vector2.zero);
+            TestRuntime.SetField(booster, "boostForce", -5f);
+            TestRuntime.SetField(booster, "reactivateDelay", -1f);
+
+            TestRuntime.InvokeLifecycle(booster, "Awake");
+
+            Assert.That(booster.BoostDirection, Is.EqualTo(Vector2.up));
+            Assert.That(booster.BoostForce, Is.EqualTo(14f));
+            Assert.That(booster.ReactivateDelay, Is.EqualTo(2.5f));
+        }
     }
 }

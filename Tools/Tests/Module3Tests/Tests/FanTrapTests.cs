@@ -125,5 +125,60 @@ namespace OneHitDown.Tests
 
             Assert.That(fan.WindDirection, Is.EqualTo(Vector2.up), "Khi truyền Vector2.zero, windDirection phải tự fallback về Vector2.up");
         }
+
+        [Test]
+        [Description("TC-FA-07 (Edge): Null Player Guard — Collider có tag Player nhưng không có PlayerController -> Bỏ qua an toàn, không exception")]
+        public void TC_FA_07_NullPlayerGuard()
+        {
+            var (_, fan, _, _) = CreateFan(Vector2.up, 15f, true);
+            GameObject fake = new GameObject("FakePlayer") { tag = "Player" };
+            BoxCollider2D fakeCol = fake.AddComponent<BoxCollider2D>();
+
+            Assert.DoesNotThrow(() => TestRuntime.InvokeLifecycle(fan, "OnTriggerStay2D", fakeCol));
+        }
+
+        [Test]
+        [Description("TC-FA-08 (Edge): Dead Player Guard — Player đã chết trong vùng gió không bị tác dụng lực")]
+        public void TC_FA_08_DeadPlayerGuard()
+        {
+            var (_, fan, _, _) = CreateFan(Vector2.up, 15f, true);
+            var (_, player, playerCol, rb) = PlayerController.CreateMockPlayer();
+            player.IsDead = true;
+            rb.linearVelocity = new Vector2(0f, 1f);
+
+            TestRuntime.InvokeLifecycle(fan, "OnTriggerStay2D", playerCol);
+
+            Assert.That(rb.linearVelocity.y, Is.EqualTo(1f), "Player chết không bị gió đẩy");
+            Assert.That(player.ExternalVelocityCount, Is.EqualTo(0));
+        }
+
+        [Test]
+        [Description("TC-FA-09 (Edge): Awake Auto Finds Renderer — spriteRenderer null trong Inspector -> Awake() tự GetComponent")]
+        public void TC_FA_09_AwakeAutoFindsRenderer()
+        {
+            GameObject go = new GameObject("Fan_AutoFind");
+            SpriteRenderer srOnGo = go.AddComponent<SpriteRenderer>();
+            FanTrap fan = go.AddComponent<FanTrap>();
+
+            TestRuntime.SetField(fan, "spriteRenderer", null);
+            TestRuntime.InvokeLifecycle(fan, "Awake");
+
+            SpriteRenderer resolved = TestRuntime.GetField<SpriteRenderer>(fan, "spriteRenderer");
+            Assert.That(resolved, Is.Not.Null);
+            Assert.That(resolved, Is.SameAs(srOnGo));
+        }
+
+        [Test]
+        [Description("TC-FA-10 (Edge): Negative Force Reset — windForce <= 0 tự reset về DefaultWindForce (15f)")]
+        public void TC_FA_10_NegativeForceReset()
+        {
+            GameObject go = new GameObject("Fan_BadForce");
+            FanTrap fan = go.AddComponent<FanTrap>();
+
+            TestRuntime.SetField(fan, "windForce", -10f);
+            TestRuntime.InvokeLifecycle(fan, "Awake");
+
+            Assert.That(fan.WindForce, Is.EqualTo(15f), "windForce âm phải tự reset về 15f");
+        }
     }
 }
