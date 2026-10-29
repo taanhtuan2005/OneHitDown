@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using OneHitDown.Core;
 using OneHitDown.Player;
+using OneHitDown.UI;
 using TMPro;
 using UnityEngine;
 
