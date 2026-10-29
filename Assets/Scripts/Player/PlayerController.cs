@@ -5,9 +5,20 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using OneHitDown.Core;
 
 namespace OneHitDown.Player
 {
+    /// <summary>
+    /// Enum phân biệt Player 1 và Player 2 (chung bàn phím).
+    /// </summary>
+    public enum PlayerType { Player1, Player2 }
+
+    /// <summary>
+    /// Enum 4 bộ skin nhân vật (ánh xạ vào mảng skinControllers).
+    /// </summary>
+    public enum CharacterSkin { NinjaFrog = 0, VirtualGuy = 1, PinkMan = 2, MaskDude = 3 }
+
     /// <summary>
     /// Điều khiển vật lý nhân vật: gia tốc đà chạy, nhảy đơn, nhảy đôi,
     /// trượt băng, ngoại lực quạt gió, đệm lò xo và mũi tên gia tốc.
@@ -22,6 +33,10 @@ namespace OneHitDown.Player
         private static readonly int AnimIsGrounded = Animator.StringToHash("isGrounded");
         private static readonly int AnimVerticalVelocity = Animator.StringToHash("verticalVelocity");
         private static readonly int AnimDoubleJump = Animator.StringToHash("DoubleJump");
+
+        [Header("Cấu hình Player & Skin")]
+        [SerializeField] private PlayerType playerType = PlayerType.Player1; // Phân biệt input Player1 (A/D/Space) vs Player2 (Arrows)
+        [SerializeField] private RuntimeAnimatorController[] skinControllers; // Mảng 4 Animator Controllers cho 4 Skins
 
         [Header("Tốc độ & Gia tốc (Schema §3.2)")]
         [SerializeField] private float moveSpeed = 8f;
@@ -63,9 +78,11 @@ namespace OneHitDown.Player
         private float appliedExternalX; // Ngoại lực ngang đã cộng vào rb ở bước vật lý trước
         private Vector2 spawnPoint;
         private Coroutine respawnRoutine;
+        private PlayerVFX playerVFX; // Cache trong Awake để phát VFX chết / hồi sinh
 
         #region Public Properties & Events
 
+        public PlayerType Type => playerType;
         public bool IsDead => isDead;
         public bool IsGrounded => isGrounded;
         public bool IsOnIce => isOnIce;
@@ -132,7 +149,32 @@ namespace OneHitDown.Player
                 col.sharedMaterial = slipperyMat;
             }
 
+            playerVFX = GetComponent<PlayerVFX>();
             spawnPoint = transform.position;
+        }
+
+        /// <summary>
+        /// Đổi skin nhân vật bằng cách gán Animator Controller tương ứng.
+        /// Gọi từ GameManager sau khi đọc lựa chọn skin từ GameSession.
+        /// </summary>
+        public void ApplySkin(CharacterSkin skin)
+        {
+            if (anim == null || skinControllers == null || skinControllers.Length == 0)
+            {
+                return;
+            }
+
+            int skinIndex = (int)skin;
+            if (skinIndex >= 0 && skinIndex < skinControllers.Length && skinControllers[skinIndex] != null)
+            {
+                anim.runtimeAnimatorController = skinControllers[skinIndex];
+                // Rebind Animator để khởi tạo lại state machine với controller mới
+                if (anim.isActiveAndEnabled)
+                {
+                    anim.Rebind();
+                    anim.Update(0f);
+                }
+            }
         }
 
         private void Update()
@@ -197,6 +239,12 @@ namespace OneHitDown.Player
             float currentVx = rb.linearVelocity.x - platformVelocity.x - appliedExternalX;
             float newVx = Mathf.MoveTowards(currentVx, targetVx, accel * Time.fixedDeltaTime) + platformVelocity.x;
 
+            // Trên không và đang ép vào tường theo hướng di chuyển: kẹp lại để không dính tường
+            if (!isGrounded && IsTouchingWall(horizontalInput) && Mathf.Sign(newVx - platformVelocity.x) == Mathf.Sign(horizontalInput))
+            {
+                newVx = platformVelocity.x;
+            }
+
             // Áp dụng ngoại lực (từ quạt gió ngang hoặc dây kéo)
             newVx += externalVelocity.x;
             appliedExternalX = externalVelocity.x;
@@ -214,56 +262,106 @@ namespace OneHitDown.Player
 
         /// <summary>
         /// Đọc phím điều khiển hỗ trợ cả New Input System và Legacy Input.
-        /// Player 1: A/D di chuyển ngang, Space hoặc W để nhảy.
+        /// Player1: A/D di chuyển ngang, Space hoặc W để nhảy.
+        /// Player2: Arrow keys di chuyển ngang, UpArrow để nhảy.
         /// </summary>
         private void ReadInput()
         {
             float h = 0f;
             bool jumpPressed = false;
 
-#if ENABLE_INPUT_SYSTEM
-            var keyboard = UnityEngine.InputSystem.Keyboard.current;
-            if (keyboard != null)
+            if (playerType == PlayerType.Player1)
             {
-                if (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed)
+#if ENABLE_INPUT_SYSTEM
+                var keyboard = UnityEngine.InputSystem.Keyboard.current;
+                if (keyboard != null)
                 {
-                    h -= 1f;
-                }
+                    if (keyboard.aKey.isPressed)
+                    {
+                        h -= 1f;
+                    }
 
-                if (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed)
-                {
-                    h += 1f;
-                }
+                    if (keyboard.dKey.isPressed)
+                    {
+                        h += 1f;
+                    }
 
-                if (keyboard.spaceKey.wasPressedThisFrame || keyboard.wKey.wasPressedThisFrame || keyboard.upArrowKey.wasPressedThisFrame)
-                {
-                    jumpPressed = true;
+                    if (keyboard.spaceKey.wasPressedThisFrame || keyboard.wKey.wasPressedThisFrame)
+                    {
+                        jumpPressed = true;
+                    }
                 }
-            }
 #endif
 
 #if ENABLE_LEGACY_INPUT_MANAGER
-            if (h == 0f)
-            {
-                if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
+                if (h == 0f)
                 {
-                    h -= 1f;
+                    if (Input.GetKey(KeyCode.A))
+                    {
+                        h -= 1f;
+                    }
+
+                    if (Input.GetKey(KeyCode.D))
+                    {
+                        h += 1f;
+                    }
                 }
 
-                if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
+                if (!jumpPressed)
                 {
-                    h += 1f;
+                    if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.W))
+                    {
+                        jumpPressed = true;
+                    }
                 }
-            }
-
-            if (!jumpPressed)
-            {
-                if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
-                {
-                    jumpPressed = true;
-                }
-            }
 #endif
+            }
+            else // Player2
+            {
+#if ENABLE_INPUT_SYSTEM
+                var keyboard = UnityEngine.InputSystem.Keyboard.current;
+                if (keyboard != null)
+                {
+                    if (keyboard.leftArrowKey.isPressed)
+                    {
+                        h -= 1f;
+                    }
+
+                    if (keyboard.rightArrowKey.isPressed)
+                    {
+                        h += 1f;
+                    }
+
+                    if (keyboard.upArrowKey.wasPressedThisFrame)
+                    {
+                        jumpPressed = true;
+                    }
+                }
+#endif
+
+#if ENABLE_LEGACY_INPUT_MANAGER
+                if (h == 0f)
+                {
+                    if (Input.GetKey(KeyCode.LeftArrow))
+                    {
+                        h -= 1f;
+                    }
+
+                    if (Input.GetKey(KeyCode.RightArrow))
+                    {
+                        h += 1f;
+                    }
+                }
+
+                if (!jumpPressed)
+                {
+                    if (Input.GetKeyDown(KeyCode.UpArrow))
+                    {
+                        jumpPressed = true;
+                    }
+                }
+#endif
+            }
 
             horizontalInput = h;
             if (jumpPressed)
@@ -334,6 +432,23 @@ namespace OneHitDown.Player
             {
                 isGrounded = false;
             }
+        }
+
+        /// <summary>
+        /// Kiểm tra có tường (Layer Ground) ngay phía trước theo hướng di chuyển hay không.
+        /// </summary>
+        private bool IsTouchingWall(float direction)
+        {
+            if (col == null || Mathf.Abs(direction) < 0.01f)
+            {
+                return false;
+            }
+
+            Bounds b = col.bounds;
+            Vector2 size = new Vector2(0.05f, b.size.y * 0.8f);
+            Vector2 dir = direction > 0f ? Vector2.right : Vector2.left;
+            RaycastHit2D hit = Physics2D.BoxCast(b.center, size, 0f, dir, b.extents.x + 0.05f, groundLayer);
+            return hit.collider != null;
         }
 
         /// <summary>
@@ -458,10 +573,12 @@ namespace OneHitDown.Player
 
         /// <summary>
         /// Kích hoạt chết khi chạm bẫy tử thần hoặc vùng chết.
+        /// Guard chống lặp vô hạn. Phát VFX Desappearing và bắn sự kiện OnPlayerDied.
         /// </summary>
         public void Die()
         {
-            if (isDead)
+            // Guard chống lặp vô hạn & God Mode (Schema Mục 3.2 dòng 244)
+            if (isDead || (GameManager.Instance != null && GameManager.Instance.IsGodMode))
             {
                 return;
             }
@@ -470,6 +587,12 @@ namespace OneHitDown.Player
             if (rb != null)
             {
                 rb.linearVelocity = Vector2.zero;
+                rb.simulated = false;
+            }
+
+            if (playerVFX != null)
+            {
+                playerVFX.PlayDeathVFX(transform.position);
             }
 
             OnPlayerDied?.Invoke(this);
@@ -501,13 +624,26 @@ namespace OneHitDown.Player
 
             if (rb != null)
             {
+                rb.simulated = true;
                 rb.linearVelocity = Vector2.zero;
+            }
+
+            if (playerVFX != null)
+            {
+                playerVFX.PlaySpawnVFX(spawnPosition);
             }
 
             if (respawnRoutine != null)
             {
                 StopCoroutine(respawnRoutine);
                 respawnRoutine = null;
+            }
+
+            // Rebind Animator để đảm bảo state machine khởi tạo đúng sau respawn
+            if (anim != null && anim.isActiveAndEnabled)
+            {
+                anim.Rebind();
+                anim.Update(0f);
             }
         }
 
