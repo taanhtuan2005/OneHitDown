@@ -5,6 +5,7 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using OneHitDown.Core;
 
 namespace OneHitDown.Player
 {
@@ -576,7 +577,8 @@ namespace OneHitDown.Player
         /// </summary>
         public void Die()
         {
-            if (isDead)
+            // Guard chống lặp vô hạn & God Mode (Schema Mục 3.2 dòng 244)
+            if (isDead || (GameManager.Instance != null && GameManager.Instance.IsGodMode))
             {
                 return;
             }
