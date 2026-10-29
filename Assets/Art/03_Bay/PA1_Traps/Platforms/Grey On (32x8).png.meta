@@ -48,7 +48,7 @@ TextureImporter:
   compressionQuality: 50
   spriteMode: 2
   spriteExtrude: 1
-  spriteMeshType: 1
+  spriteMeshType: 0
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 16
@@ -123,7 +123,7 @@ TextureImporter:
         width: 256
         height: 8
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -136,11 +136,33 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: GreyOn_Frame0_32x8
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 32
+        height: 8
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 120a61d792cb3a64eb227128d4283d97
+      internalID: 2125457231
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 9bf272ad334ed954c816af70547e1ac7
     internalID: 0
     vertices: []
     indices: 
@@ -151,6 +173,7 @@ TextureImporter:
       entries: []
     nameFileIdTable:
       Grey On (32x8)_0: 3392405149061117267
+      GreyOn_Frame0_32x8: 2125457231
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
