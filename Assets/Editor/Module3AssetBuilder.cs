@@ -42,7 +42,6 @@ namespace OneHitDown.EditorTools
                 // BƯỚC 1: Đảm bảo cấu trúc thư mục
                 EnsureFolder(AnimationsDir);
                 EnsureFolder(PrefabsTrapsDir);
-                EnsureFolder(PrefabsRootDir);
 
                 // BƯỚC 2: Cắt lại 2 Sprite Sheet có dị thường (Falling Platforms & Arrow Idle)
                 EditorUtility.DisplayProgressBar("One Hit Down - Module 3", "Đang cắt lại Sprite Sheets...", 0.15f);
@@ -731,11 +730,8 @@ namespace OneHitDown.EditorTools
         private static void SavePrefab(GameObject go, string name)
         {
             string pathTraps = $"{PrefabsTrapsDir}/{name}.prefab";
-            string pathRoot = $"{PrefabsRootDir}/{name}.prefab";
-
             PrefabUtility.SaveAsPrefabAsset(go, pathTraps);
-            PrefabUtility.SaveAsPrefabAsset(go, pathRoot);
-            Debug.Log($"[Module3AssetBuilder] Đã đóng gói Prefab: {pathTraps} và {pathRoot}");
+            Debug.Log($"[Module3AssetBuilder] Đã đóng gói Prefab chuẩn Module 3: {pathTraps}");
         }
 
         #endregion
