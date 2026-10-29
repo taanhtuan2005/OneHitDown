@@ -208,6 +208,28 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: Sand Mud Ice (16x6)_IceBlock9Slice
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 32
+        width: 48
+        height: 48
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 16, y: 16, z: 16, w: 16}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9fcd8730d710e9e4ab3bf81b4b1598da
+      internalID: -1125059218
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape: []
@@ -225,6 +247,7 @@ TextureImporter:
       Sand Mud Ice (16x6)_0: -6353259541176127035
       Sand Mud Ice (16x6)_1: 6167641977362757515
       Sand Mud Ice (16x6)_2: 3626576778737192768
+      Sand Mud Ice (16x6)_IceBlock9Slice: -1125059218
       Sand Mud Ice (16x6)_IceTile: -121247572
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
