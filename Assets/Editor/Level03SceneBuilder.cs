@@ -1,14 +1,18 @@
 // ====================================================================================================
 // SCRIPT UNITY EDITOR: XÂY DỰNG CHUẨN XÁC 100% SCENE MÀN 3 'Assets/Scenes/Level_03.unity'
-// BẢN 1: TOÀN CẢNH 5 CHẶNG DÀI 200 UNITS (3200 PX, PPU = 16) TỪ THƯ MỤC 'màn 3/'
-// "MÀN 3: HẦM MỘ BĂNG LÃNH & VẠC LỬA" (Catacombs of Ice & Ember)
+// BẢN CẢI TIẾN THẨM MỸ & KỸ THUẬT (ART & TECH ART UPGRADE):
+// "MÀN 3: HẦM MỘ BĂNG LÃNH & VẠC LỬA" (Catacombs of Ice & Ember) — DÀI 200 UNITS (3200 PX, PPU = 16)
 //
-// NGUYÊN TẮC CỐT LÕI (TUÂN THỦ 100% CLAUDE.MD DỰ ÁN):
-// 1. CHỈ DÙNG ASSET ĐƯỢC PHÂN CHO MÀN 3 TẠI 'Assets/Art/' (PA1_Terrain, PA1_Background/Gray, Sand Mud Ice, Fire, Spikes, Spiked Ball, Fruits).
+// NGUYÊN TẮC CỐT LÕI (TUÂN THỦ 100% GEMINI.MD & SCHEMA_CHI_TIET.MD):
+// 1. CHỈ DÙNG ASSET ĐƯỢC PHÂN CHO MÀN 3 TẠI 'Assets/Art/' (PA1_Terrain, PA1_Background/Gray, Sand Mud Ice, Fire, Spikes, Spiked Ball, Fruits, Boxes).
 // 2. TUYỆT ĐỐI KHÔNG TẠO SPRITE THỦ CÔNG / PROCEDURAL (ZERO FAKE ASSETS).
 // 3. TOÀN BỘ 6 CƠ QUAN MODULE 3 ĐƯỢC LẤY TRỰC TIẾP TỪ 'Assets/Prefabs/Traps/'.
 // 4. MOCK SCRIPTS ĐẶT RIÊNG TẠI 'Assets/Scripts/Dev/Mocks/' THEO 'Docs/LEVEL_03_MOCK_NOTICE.md'.
-// 5. TOÀN BỘ ĐỊA HÌNH KHỐI ĐÁ VÀ KHỐI BĂNG KHỚP KÍN HOÀN TOÀN TỪ Y = 0 ĐẾN Y = 4+, KHÔNG CÒN KHE HỞ VÀ KHÔNG CÒN KHỐI ĐEN LẠ.
+// 5. ĐỒNG BỘ 100% VỚI BỘ 11 ẢNH CẢI TIẾN TRONG 'Anh_Minh_Hoa_Bao_Cao/màn 3/':
+//    - Vòm Trần Hầm Mộ liền mạch (Y = 16..20) kết hợp Trụ Thép (Steel Pillars) và Dầm Thép (Steel Beams).
+//    - Khối Băng 9-Slice (48x48, border 16px) giữ nguyên viền đen sắc nét và mặt tuyết phản quang.
+//    - Khối Đá 9-Slice điểm xuyết các cụm gạch đá lẻ (Stone Inner Bricks 32x32) từ Terrain (16x16).png.
+//    - Hốc Vạc Lửa âm tường (Recessed Fire Alcoves), Đường ray mắt xích (Chain.png) cho Bệ Nâng & Bệ Treo.
 //
 // Menu Editor: Tools -> One Hit Down -> Build Level 03 Scene (Catacombs of Ice & Ember)
 // ====================================================================================================
@@ -37,16 +41,7 @@ namespace OneHitDown.EditorTools
 
         // Asset paths chính thức của dự án (Màn 3)
         private const string TerrainTexturePath = "Assets/Art/02_MoiTruong/PA1_Terrain/Terrain (16x16).png";
-
-        // Khối đá 9-slice: vùng 48x48 góc trên-trái của Terrain (16x16).png (khung gạch xám, lõi tối), viền 16px = 1 tile
-        private const string StoneBlockSpriteName = "Terrain (16x16)_StoneBlock";
-        private static readonly Rect StoneBlockRect = new Rect(0f, 128f, 48f, 48f); // tọa độ Unity (gốc dưới-trái), ảnh cao 176px
-        private const float StoneBlockBorder = 16f;
-
-        // Ô băng 16x16 lấy từ lõi đặc của sprite băng (Sand Mud Ice (16x6)_2, x 127..175); ảnh cao 80px nên y Unity = 80 - (y ảnh + 16)
         private const string IceTexturePath = "Assets/Art/03_Bay/PA1_Traps/Sand Mud Ice/Sand Mud Ice (16x6).png";
-        private const string IceTileSpriteName = "Sand Mud Ice (16x6)_IceTile";
-        private static readonly Rect IceTileRect = new Rect(131f, 61f, 16f, 16f);
         private const string BackgroundTexturePath = "Assets/Art/02_MoiTruong/PA1_Background/Gray.png";
         private const string PlayerControllerAssetPath = "Assets/Art/Animations/NinjaFrog/NinjaFrog_Controller.controller";
         private const string PlayerSpritePath = "Assets/Art/01_NhanVat/PA1_MainCharacters/Ninja Frog/Idle (32x32).png";
@@ -56,11 +51,57 @@ namespace OneHitDown.EditorTools
         private const string FireOnPath = "Assets/Art/03_Bay/PA1_Traps/Fire/On (16x32).png";
         private const string SpikedBallPath = "Assets/Art/03_Bay/PA1_Traps/Spiked Ball/Spiked Ball.png";
         private const string SpikedChainPath = "Assets/Art/03_Bay/PA1_Traps/Spiked Ball/Chain.png";
-        private const string MovingPlatformPath = "Assets/Art/03_Bay/PA1_Traps/Platforms/Grey On (32x8).png";
+        private const string MovingPlatformGreyPath = "Assets/Art/03_Bay/PA1_Traps/Platforms/Grey On (32x8).png";
+        private const string MovingPlatformBrownPath = "Assets/Art/03_Bay/PA1_Traps/Platforms/Brown On (32x8).png";
+        private const string PlatformChainPath = "Assets/Art/03_Bay/PA1_Traps/Platforms/Chain.png";
         private const string KiwiPath = "Assets/Art/04_VatPham_dungOrkhong/PA1_Items/Fruits/Kiwi.png";
         private const string StrawberryPath = "Assets/Art/04_VatPham_dungOrkhong/PA1_Items/Fruits/Strawberry.png";
         private const string StartSignPath = "Assets/Art/04_VatPham_dungOrkhong/PA1_Items/Checkpoints/Start/Start (Moving) (64x64).png";
         private const string TrophyPath = "Assets/Art/04_VatPham_dungOrkhong/PA1_Items/Checkpoints/End/End (Idle).png";
+        private const string Box1Path = "Assets/Art/04_VatPham_dungOrkhong/PA1_Items/Boxes/Box1/Idle.png";
+        private const string Box3Path = "Assets/Art/04_VatPham_dungOrkhong/PA1_Items/Boxes/Box3/Idle.png";
+
+        // --- Định nghĩa các vùng Sprite chuẩn từ Terrain (16x16).png (352x176 px, gốc dưới-trái của Unity) ---
+        // 1. Khối đá 9-slice (48x48 góc trên-trái: x=0..48, y=128..176, border 16px)
+        private const string StoneBlockSpriteName = "Terrain (16x16)_StoneBlock";
+        private static readonly Rect StoneBlockRect = new Rect(0f, 128f, 48f, 48f);
+        private const float SliceBorder16 = 16f;
+
+        // 2. Cụm gạch đá lẻ trang trí bên trong lòng khối đá (32x32 tại x=48..80, y=144..176)
+        private const string StoneInnerBrickSpriteName = "Terrain (16x16)_StoneInnerBricks";
+        private static readonly Rect StoneInnerBrickRect = new Rect(48f, 144f, 32f, 32f);
+
+        // 3. Dầm thép ngang 9-slice (48x16 tại x=192..240, y=96..112, border trái/phải 16px)
+        private const string SteelBeamHorizSpriteName = "Terrain (16x16)_SteelBeamHoriz";
+        private static readonly Rect SteelBeamHorizRect = new Rect(192f, 96f, 48f, 16f);
+
+        // 4. Trụ thép dọc 9-slice (16x48 tại x=240..256, y=64..112, border trên/dưới 16px)
+        private const string SteelPillarVertSpriteName = "Terrain (16x16)_SteelPillarVert";
+        private static readonly Rect SteelPillarVertRect = new Rect(240f, 64f, 16f, 48f);
+
+        // 5. Khối thép vuông 2x2 (32x32 tại x=208..240, y=64..96)
+        private const string SteelBlock2x2SpriteName = "Terrain (16x16)_SteelBlock2x2";
+        private static readonly Rect SteelBlock2x2Rect = new Rect(208f, 64f, 32f, 32f);
+
+        // 6. Thanh bệ mỏng One-Way vàng kim (48x16 tại x=272..320, y=160..176) & xám (x=272..320, y=128..144)
+        private const string OneWayGoldSpriteName = "Terrain (16x16)_OneWayGold";
+        private static readonly Rect OneWayGoldRect = new Rect(272f, 160f, 48f, 16f);
+        private const string OneWayGreySpriteName = "Terrain (16x16)_OneWayGrey";
+        private static readonly Rect OneWayGreyRect = new Rect(272f, 128f, 48f, 16f);
+
+        // --- Định nghĩa Khối Băng 9-Slice chuẩn từ Sand Mud Ice (16x6).png (176x80 px, gốc dưới-trái Unity) ---
+        // Khối băng 48x48 nằm ở x=128..176, y=32..80 (3x3 tiles có viền đen sắc nét & mặt tuyết trắng trên đỉnh)
+        private const string IceBlock9SliceSpriteName = "Sand Mud Ice (16x6)_IceBlock9Slice";
+        private static readonly Rect IceBlock9SliceRect = new Rect(128f, 32f, 48f, 48f);
+
+        private static Sprite stoneBlockSprite;
+        private static Sprite stoneInnerBrickSprite;
+        private static Sprite steelBeamHorizSprite;
+        private static Sprite steelPillarVertSprite;
+        private static Sprite steelBlock2x2Sprite;
+        private static Sprite oneWayGoldSprite;
+        private static Sprite oneWayGreySprite;
+        private static Sprite iceBlock9SliceSprite;
 
         [MenuItem("Tools/One Hit Down/Build Level 03 Scene (Catacombs of Ice & Ember)", false, 30)]
         public static void BuildLevel03Menu()
@@ -82,32 +123,40 @@ namespace OneHitDown.EditorTools
         }
 
         /// <summary>
-        /// Tạo mới hoàn toàn Scene Level_03.unity đúng 100% tài nguyên Màn 3 và 5 ảnh thiết kế.
+        /// Tạo mới hoàn toàn Scene Level_03.unity đồng bộ 100% với bộ 11 ảnh cải tiến Màn 3.
         /// </summary>
         public static void BuildLevel03Scene(bool openScene = true)
         {
             try
             {
-                EditorUtility.DisplayProgressBar("Level 03 - Build Scene", "Khởi tạo Scene mới...", 0.05f);
+                EditorUtility.DisplayProgressBar("Level 03 - Build Scene", "Khởi tạo & cắt Sprite 9-Slice chuẩn...", 0.05f);
                 EnsureDirectory(SceneDir);
 
-                // 1. Nạp toàn bộ Sprite chính thức từ Assets/Art/
-                Sprite stoneSprite = EnsureStoneBlockSprite(); // Khối đá 9-slice: viền gạch 1 tile, lõi tối, không lặp cụm sprite
-                if (stoneSprite == null)
+                // 1. Đảm bảo toàn bộ Sprite 9-Slice và Detail Sprites được khai báo trong TextureImporter
+                stoneBlockSprite = EnsureExtraSprite(TerrainTexturePath, StoneBlockSpriteName, StoneBlockRect, new Vector4(SliceBorder16, SliceBorder16, SliceBorder16, SliceBorder16));
+                stoneInnerBrickSprite = EnsureExtraSprite(TerrainTexturePath, StoneInnerBrickSpriteName, StoneInnerBrickRect, Vector4.zero);
+                steelBeamHorizSprite = EnsureExtraSprite(TerrainTexturePath, SteelBeamHorizSpriteName, SteelBeamHorizRect, new Vector4(SliceBorder16, 0f, SliceBorder16, 0f));
+                steelPillarVertSprite = EnsureExtraSprite(TerrainTexturePath, SteelPillarVertSpriteName, SteelPillarVertRect, new Vector4(0f, SliceBorder16, 0f, SliceBorder16));
+                steelBlock2x2Sprite = EnsureExtraSprite(TerrainTexturePath, SteelBlock2x2SpriteName, SteelBlock2x2Rect, Vector4.zero);
+                oneWayGoldSprite = EnsureExtraSprite(TerrainTexturePath, OneWayGoldSpriteName, OneWayGoldRect, new Vector4(SliceBorder16, 0f, SliceBorder16, 0f));
+                oneWayGreySprite = EnsureExtraSprite(TerrainTexturePath, OneWayGreySpriteName, OneWayGreyRect, new Vector4(SliceBorder16, 0f, SliceBorder16, 0f));
+                iceBlock9SliceSprite = EnsureExtraSprite(IceTexturePath, IceBlock9SliceSpriteName, IceBlock9SliceRect, new Vector4(SliceBorder16, SliceBorder16, SliceBorder16, SliceBorder16));
+
+                if (stoneBlockSprite == null)
                 {
                     Debug.LogError("[Level03SceneBuilder] Không tạo được sprite khối đá 9-slice từ Terrain (16x16).png. Hủy dựng Scene.");
                     return;
                 }
-                Sprite thinPlatformSprite = LoadFirstSprite(TerrainTexturePath, "Terrain (16x16)_3"); // Thanh bệ mỏng One-Way
-                Sprite bgSprite = LoadFirstSprite(BackgroundTexturePath, "Gray_0"); // Phông nền xám Màn 3
-                Sprite playerSprite = LoadFirstSprite(PlayerSpritePath, "Idle (32x32)_0"); // Ninja Frog
+
+                Sprite bgSprite = LoadFirstSprite(BackgroundTexturePath, "Gray_0");
+                Sprite playerSprite = LoadFirstSprite(PlayerSpritePath, "Idle (32x32)_0");
 
                 // 2. Tạo Scene sạch trong Editor
                 Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
                 // 3. Hierarchy phân nhóm quản lý theo đúng quy chuẩn
                 GameObject envGroup = new GameObject("--- 01. ENVIRONMENT & BACKGROUND ---");
-                GameObject terrainGroup = new GameObject("--- 02. TERRAIN & PLATFORMS ---");
+                GameObject terrainGroup = new GameObject("--- 02. TERRAIN & CATACOMB ARCHITECTURE ---");
                 GameObject module3Group = new GameObject("--- 03. MODULE 3 PREFABS (CHINH THUC - TUYEN) ---");
                 GameObject mockGroup2 = new GameObject("--- 04. [MOCK FOR TEST - CHO NGUOI 2 HOAN THIEN: LUA, GAI, CAU GAI] ---");
                 GameObject mockGroup4 = new GameObject("--- 05. [MOCK FOR TEST - CHO NGUOI 4 HOAN THIEN: BE NANG, KIWI, DAU TAY, DICH] ---");
@@ -131,12 +180,12 @@ namespace OneHitDown.EditorTools
                     camFollow.SetTarget(playerGo.transform);
                 }
 
-                // 7. Địa hình đá xám tro Terrain (16x16)_0 và nền móng liền mạch
-                EditorUtility.DisplayProgressBar("Level 03 - Build Scene", "Tạo Địa hình gạch sàn, vách đá...", 0.50f);
-                BuildAllStoneTerrain(terrainGroup.transform, stoneSprite, thinPlatformSprite);
+                // 7. Địa hình đá 9-Slice, Vòm Trần Hầm Mộ, Trụ Thép và Họa tiết gạch lẻ
+                EditorUtility.DisplayProgressBar("Level 03 - Build Scene", "Dựng Vòm Trần Hầm Mộ & Địa hình đá...", 0.50f);
+                BuildAllStoneTerrainAndArchitecture(terrainGroup.transform);
 
-                // 8. Các khối Sàn Băng IceRoad.prefab chính thức (dày 4 tiles từ y=0 đến y=4, khớp hoàn toàn)
-                EditorUtility.DisplayProgressBar("Level 03 - Build Scene", "Bố trí các Khối Băng IceRoad.prefab...", 0.65f);
+                // 8. Các khối Sàn Băng IceRoad.prefab chính thức (9-Slice sắc nét, viền đen + mặt tuyết)
+                EditorUtility.DisplayProgressBar("Level 03 - Build Scene", "Bố trí các Khối Băng 9-Slice IceRoad.prefab...", 0.65f);
                 BuildAllIceBlocks(module3Group.transform);
 
                 // 9. 5 Cơ quan Module 3 còn lại của Tuyên (Trampoline, FallingPlatform, Fan, DeathPit, Arrow)
@@ -147,7 +196,7 @@ namespace OneHitDown.EditorTools
                 EditorUtility.DisplayProgressBar("Level 03 - Build Scene", "Bố trí Vạc Lửa, Gai, Cầu Gai...", 0.85f);
                 BuildModule2Mocks(mockGroup2.transform);
 
-                // 11. Mock-Safe Người 4 (Bệ Nâng X/Y, Kiwi [3/3], Dâu Tây, Cúp Đích)
+                // 11. Mock-Safe Người 4 (Bệ Nâng X/Y có ray xích, Kiwi [3/3], Dâu Tây, Cúp Đích)
                 EditorUtility.DisplayProgressBar("Level 03 - Build Scene", "Bố trí Bệ Nâng, Kiwi, Dâu Tây, Cúp Đích...", 0.92f);
                 BuildModule4Mocks(mockGroup4.transform);
 
@@ -162,20 +211,20 @@ namespace OneHitDown.EditorTools
 
                 if (saved)
                 {
-                    Debug.Log($"<b>[Level03SceneBuilder]</b> TẠO THÀNH CÔNG SCENE: <color=green>{ScenePath}</color>");
+                    Debug.Log($"<b>[Level03SceneBuilder]</b> TẠO THÀNH CÔNG SCENE CẢI TIẾN: <color=green>{ScenePath}</color>");
                     if (openScene)
                     {
                         EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
                     }
                     EditorUtility.DisplayDialog(
-                        "One Hit Down - Màn 3",
-                        $"Đã tạo thành công Màn 3 hoàn chỉnh:\n{ScenePath}\n\n" +
-                        "★ 100% sử dụng Asset gốc của Màn 3 (Terrain đá xám, Băng Sand Mud Ice, Gray bg)\n" +
-                        "★ Toàn bộ 6 Cơ quan Module 3 lấy trực tiếp từ Assets/Prefabs/Traps/\n" +
-                        "★ Khối đá và khối băng đều có đáy tại Y=0, khớp khít hoàn toàn không còn khe hở\n" +
-                        "★ Nền móng đá xám tro mỏng, chia đoạn, chừa trống dưới các hố sâu\n" +
-                        "★ Đầy đủ Mock-Safe theo Docs/LEVEL_03_MOCK_NOTICE.md!",
-                        "Tuyệt vời! Chơi thử ngay"
+                        "One Hit Down - Màn 3 (Bản Nâng Cấp Thẩm Mỹ)",
+                        $"Đã đồng bộ thành công 100% thiết kế cải tiến vào Scene:\n{ScenePath}\n\n" +
+                        "★ Kiến trúc Vòm Trần Hầm Mộ liền mạch (Y=16..20) + Trụ Thép & Dầm Thép\n" +
+                        "★ Khối Băng IceRoad.prefab cắt chuẩn 9-Slice (48x48) có viền đen sắc nét\n" +
+                        "★ Khối Đá 9-Slice điểm xuyết cụm gạch lẻ (Inner Bricks) từ Terrain (16x16).png\n" +
+                        "★ Hốc Vạc Lửa âm tường + Ray mắt xích cho Bệ Nâng & Bệ Treo One-Way\n" +
+                        "★ Đầy đủ 6 Prefabs Module 3 chính thức & Mock-Safe theo đúng quy chuẩn!",
+                        "Tuyệt vời!"
                     );
                 }
             }
@@ -196,14 +245,14 @@ namespace OneHitDown.EditorTools
         {
             GameObject camGo = new GameObject("Main Camera");
             camGo.transform.SetParent(parent);
-            camGo.transform.position = new Vector3(2.5f, 6.0f, -10f);
+            camGo.transform.position = new Vector3(4.5f, 6.5f, -10f);
             camGo.tag = "MainCamera";
 
             Camera cam = camGo.AddComponent<Camera>();
             cam.orthographic = true;
-            cam.orthographicSize = 6.0f;
+            cam.orthographicSize = 6.5f;
             cam.clearFlags = CameraClearFlags.SolidColor;
-            cam.backgroundColor = new Color(0.12f, 0.12f, 0.16f, 1f);
+            cam.backgroundColor = new Color(0.13f, 0.12f, 0.19f, 1f);
             cam.nearClipPlane = 0.3f;
             cam.farClipPlane = 1000f;
 
@@ -211,11 +260,10 @@ namespace OneHitDown.EditorTools
 
             DevCameraFollow follow = camGo.AddComponent<DevCameraFollow>();
             SerializedObject so = new SerializedObject(follow);
-            so.FindProperty("offset").vector3Value = new Vector3(0f, 2.0f, -10f);
+            so.FindProperty("offset").vector3Value = new Vector3(0f, 2.2f, -10f);
             so.FindProperty("smoothSpeed").floatValue = 6f;
-            // Giới hạn biên camera: đáy camera không bao giờ tụt xuống dưới đáy sàn
-            so.FindProperty("minBounds").vector2Value = new Vector2(-2f, 5.5f);
-            so.FindProperty("maxBounds").vector2Value = new Vector2(208f, 22f);
+            so.FindProperty("minBounds").vector2Value = new Vector2(10f, 6.5f);
+            so.FindProperty("maxBounds").vector2Value = new Vector2(190f, 13.5f);
             so.ApplyModifiedProperties();
 
             return camGo;
@@ -231,7 +279,7 @@ namespace OneHitDown.EditorTools
             SpriteRenderer sr = bgGo.AddComponent<SpriteRenderer>();
             sr.sprite = bgSprite;
             sr.drawMode = SpriteDrawMode.Tiled;
-            sr.size = new Vector2(230f, 25f);
+            sr.size = new Vector2(230f, 28f);
             sr.sortingOrder = -50;
         }
 
@@ -239,7 +287,7 @@ namespace OneHitDown.EditorTools
         {
             GameObject playerGo = new GameObject("Player_NinjaFrog");
             playerGo.transform.SetParent(parent);
-            playerGo.transform.position = new Vector3(2.5f, 4.1f, 0f);
+            playerGo.transform.position = new Vector3(4.5f, 4.1f, 0f);
             playerGo.tag = "Player";
 
             int playerLayer = LayerMask.NameToLayer("Player");
@@ -251,7 +299,7 @@ namespace OneHitDown.EditorTools
 
             BoxCollider2D col = playerGo.AddComponent<BoxCollider2D>();
             col.size = new Vector2(0.8f, 1.3f);
-            col.offset = new Vector2(0f, 0.65f); // Đáy collider trùng chân y = 0
+            col.offset = new Vector2(0f, 0.65f);
 
             Animator animator = playerGo.AddComponent<Animator>();
             animator.runtimeAnimatorController = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(PlayerControllerAssetPath);
@@ -283,99 +331,178 @@ namespace OneHitDown.EditorTools
 
         #endregion
 
-        #region Terrain & Platforms (Đá xám tro Terrain (16x16)_0)
+        #region Terrain & Catacomb Architecture (Đá 9-Slice, Vòm Trần Hầm Mộ, Trụ Thép & Họa Tiết Gạch)
 
-        private static void BuildAllStoneTerrain(Transform parent, Sprite stoneSprite, Sprite thinPlatformSprite)
+        private static void BuildAllStoneTerrainAndArchitecture(Transform parent)
         {
-            // === NỀN MÓNG ĐÁ XÁM TRO (Y: -4 đến 0, tâm Y = -2, dày 4 tiles), chia đoạn, chỉ để làm nền thị giác ===
-            // Khe hở nằm dưới các hố sâu nên hố đọc như vực thật thay vì một khối đặc kéo dài cả màn
-            CreateStoneFoundationSegments(parent, stoneSprite);
+            GameObject ceilingGroup = new GameObject("01_Catacomb_Ceiling_Archways");
+            ceilingGroup.transform.SetParent(parent);
 
-            // === PHẦN 1: KHỞI ĐẦU (0-40, Sàn y=0 đến y=4, có hố gai ở cuối dải băng thứ hai) ===
-            // 1. Thềm xuất phát: X: 0 đến 8, Y: 0 đến 4
-            CreateStoneBox("P1_StartLedge", new Vector2(4f, 2f), new Vector2(8f, 4f), parent, stoneSprite);
+            GameObject pillarsGroup = new GameObject("02_Steel_Pillars_And_Beams");
+            pillarsGroup.transform.SetParent(parent);
 
-            // 2. Gờ đá vạc lửa đơn: X: 12 đến 24, Y: 0 đến 4 (dải băng làm quen đứng trước ngắn lại còn 4 tiles)
-            CreateStoneBox("P1_FirePlatform", new Vector2(18f, 2f), new Vector2(12f, 4f), parent, stoneSprite);
+            GameObject groundGroup = new GameObject("03_Stone_Ground_Platforms");
+            groundGroup.transform.SetParent(parent);
 
-            // 3. Hố gai cuối dải băng thứ hai: X: 33 đến 37, đáy Y: 0 đến 1 (băng trượt thẳng ra mép vực)
-            CreateStoneBox("P1_SpikePitBottom", new Vector2(35f, 0.5f), new Vector2(4f, 1f), parent, stoneSprite);
+            GameObject propsGroup = new GameObject("04_Dungeon_Crates_And_Chains");
+            propsGroup.transform.SetParent(parent);
 
-            // Sau hố gai (X: 37 đến 48) là dải băng P2_IceRoad_Runup, không còn thềm đá nối
+            // =========================================================================
+            // A. HỆ THỐNG VÒM TRẦN HẦM MỘ LIỀN MẠCH (Y = 15..20 DỌC TOÀN BỘ 200 UNITS)
+            // =========================================================================
+            (string name, float x, float yBottom, float w, float h)[] ceilingSegments =
+            {
+                // Phần 1 (0..40)
+                ("C1_EntranceArch",      0f,  17f, 6f,  3f),
+                ("C1_HighVault1",        6f,  18f, 9f,  2f),
+                ("C1_SpikeCeiling",     15f,  17f, 10f, 3f),
+                ("C1_BerryVault",       25f,  18f, 10f, 2f),
+                ("C1_DividerArch",      35f,  16f, 5f,  4f),
 
-            // 4. Thanh bệ dài mảnh One-Way đỡ Dâu Tây #1 trên cao: X: 27 đến 31, Y: 11.5
-            CreateOneWayPlatform("P1_OneWay_Berry1", new Vector2(29f, 11.5f), new Vector2(4f, 0.4f), parent, thinPlatformSprite);
+                // Phần 2 (40..80)
+                ("C2_RunupCeiling",     40f,  17f, 8f,  3f),
+                ("C2_Kiwi1Vault",       48f,  18f, 7f,  2f),
+                ("C2_SpikeCeiling",     55f,  17f, 8f,  3f),
+                ("C2_TrampolineVault",  63f,  18f, 11f, 2f),
+                ("C2_DividerArch",      74f,  16f, 6f,  4f),
 
-            // 5. Bệ trần treo gai Hình 1: X: 16 đến 24, Y: 19 đến 20
-            CreateStoneBox("P1_CeilingBox", new Vector2(20f, 19.5f), new Vector2(8f, 1f), parent, stoneSprite);
+                // Phần 3 (80..120)
+                ("C3_LakeEntryArch",    80f,  17f, 6f,  3f),
+                ("C3_MovingX_Vault",    86f,  18f, 9f,  2f),
+                ("C3_SpikeCeiling",     95f,  17f, 10f, 3f),
+                ("C3_Berry2Vault",     105f,  18f, 11f, 2f),
+                ("C3_HighWallArch",    116f,  16f, 5f,  4f),
 
-            // === PHẦN 2: KIWI 1 (40-80, y=4 -> y=6) ===
-            // 6. Bệ gạch đỡ cụm vạc lửa Kiwi 1: X: 48 đến 56, Y: 0 đến 4
-            CreateStoneBox("P2_FirePlatform", new Vector2(52f, 2f), new Vector2(8f, 4f), parent, stoneSprite);
+                // Phần 4 (120..160)
+                ("C4_Slope1Vault",     121f,  18f, 7f,  2f),
+                ("C4_Slope2Vault",     128f,  17f, 7f,  3f),
+                ("C4_SpikeCeiling",    135f,  16f, 10f, 4f),
+                ("C4_DeathPitVault",   145f,  18f, 10f, 2f),
+                ("C4_DividerArch",     155f,  16f, 5f,  4f),
 
-            // 7. Sàn đáy hố gai: X: 56 đến 60, Y: 0 đến 1 (đáy sâu y=1)
-            CreateStoneBox("P2_SpikePitBottom", new Vector2(58f, 0.5f), new Vector2(4f, 1f), parent, stoneSprite);
+                // Phần 5 (160..200)
+                ("C5_PrePitVault",     160f,  18f, 9f,  2f),
+                ("C5_FirePitArch",     169f,  17f, 7f,  3f),
+                ("C5_PendulumMount",   176f,  17f, 10f, 3f),
+                ("C5_AltarVault",      186f,  18f, 8f,  2f),
+                ("C5_SanctumBackArch", 194f,  15f, 6f,  5f)
+            };
 
-            // 8. Bệ đất đặt đệm lò xo Trampoline: X: 68 đến 73, Y: 0 đến 4
-            CreateStoneBox("P2_TrampolineLedge", new Vector2(70.5f, 2f), new Vector2(5f, 4f), parent, stoneSprite);
+            foreach (var seg in ceilingSegments)
+            {
+                CreateStoneRect(seg.name, seg.x, seg.yBottom, seg.w, seg.h, ceilingGroup.transform, addInnerBricks: true);
+            }
 
-            // 9. Vách tường cao bước lên y=6 (Nối sang Hình 3): X: 73 đến 80, Y: 0 đến 6 (cao 6 tiles)
-            CreateStoneBox("P2_StepUpLedge", new Vector2(76.5f, 3f), new Vector2(7f, 6f), parent, stoneSprite);
+            // =========================================================================
+            // B. TRỤ THÉP (STEEL PILLARS), KHỐI THÉP 2x2 & DẦM THÉP TRANG TRÍ
+            // =========================================================================
+            CreateSteelPillar("P1_EntranceSteelPillar", 0f, 4f, 13f, pillarsGroup.transform, withCollider: true);
+            CreateSteelBlock2x2("P1_EntranceSteelCap", 0f, 15f, pillarsGroup.transform);
 
-            // 10. Bệ trần treo gai Hình 2: X: 56 đến 62, Y: 19 đến 20
-            CreateStoneBox("P2_CeilingBox", new Vector2(59f, 19.5f), new Vector2(6f, 1f), parent, stoneSprite);
+            CreateSteelBlock2x2("P1_P2_ArchSteelBlock", 36f, 14f, pillarsGroup.transform, withCollider: true);
+            CreateSteelBlock2x2("P2_P3_ArchSteelBlock", 76f, 14f, pillarsGroup.transform, withCollider: true);
 
-            // === PHẦN 3: KIWI 2 & HỒ LỬA NGẦM (80-120) ===
-            // 11. Gờ đất đầu Hình 3: X: 80 đến 82, Y: 0 đến 6 (top ở y=6)
-            CreateStoneBox("P3_LeftLedge", new Vector2(81f, 3f), new Vector2(2f, 6f), parent, stoneSprite);
+            // Trụ thép đỡ Cối xay gió ngang ở đầu Phần 4 (X = 119..120, Y = 8..16)
+            CreateSteelPillar("P4_WindTunnelPillar", 119f, 8f, 6f, pillarsGroup.transform, withCollider: false);
+            CreateSteelBlock2x2("P4_WindTunnelCap", 118f, 14f, pillarsGroup.transform, withCollider: true);
 
-            // 12. Đáy hồ lửa ngầm: X: 82 đến 118, Y: 0 đến 1 (sàn đáy sâu y=1)
-            CreateStoneBox("P3_LavaPitFloor", new Vector2(100f, 0.5f), new Vector2(36f, 1f), parent, stoneSprite);
+            CreateSteelBlock2x2("P4_P5_ArchSteelBlock", 156f, 14f, pillarsGroup.transform, withCollider: true);
 
-            // 13. Cột trụ đứng ở giữa hồ: X: 97 đến 101, Y: 0 đến 5 (đỡ bệ băng ở y=5..6)
-            CreateStoneBox("P3_CenterPillarBase", new Vector2(99f, 2.5f), new Vector2(4f, 5f), parent, stoneSprite);
+            // Trụ thép hậu cảnh khóa cuối Điện Thờ Cổng Thần (X = 199..200, Y = 4..15)
+            CreateSteelPillar("P5_EndSanctumPillar", 199f, 4f, 11f, pillarsGroup.transform, withCollider: true);
+            CreateSteelBlock2x2("P5_EndSanctumCap", 198f, 13f, pillarsGroup.transform);
 
-            // 14. Bệ đỡ Dâu Tây #2 trên cao: X: 113 đến 116, Y: 9.5
-            CreateStoneBox("P3_Berry2Ledge", new Vector2(114.5f, 9.5f), new Vector2(3f, 0.5f), parent, stoneSprite);
+            // =========================================================================
+            // C. ĐỊA HÌNH SÀN ĐÁ HẦM MỘ & CÁC HỐC LÒ NUNG (GROUND PLATFORMS)
+            // =========================================================================
 
-            // 15. Vách núi cao bên phải đón người chơi (Nối sang Hình 4): X: 118 đến 122, Y: 0 đến 8 (cao 8 tiles)
-            CreateStoneBox("P3_HighWallRight", new Vector2(120f, 4f), new Vector2(4f, 8f), parent, stoneSprite);
+            // --- PHẦN 1: KHỞI ĐẦU (0..40) ---
+            // 1. Thềm xuất phát (X: 0..8, Y: 0..4) + Dầm thép viền mặt trên
+            CreateStoneRect("P1_StartLedge", 0f, 0f, 8f, 4f, groundGroup.transform, addInnerBricks: true);
+            CreateSteelBeam("P1_StartSteelTrim", 1f, 3f, 6f, pillarsGroup.transform, withCollider: false, sortingOrder: 2);
 
-            // 16. Bệ trần treo gai Hình 3: X: 96 đến 104, Y: 19 đến 20
-            CreateStoneBox("P3_CeilingBox", new Vector2(100f, 19.5f), new Vector2(8f, 1f), parent, stoneSprite);
+            // 2. Cụm đá Hốc Vạc Lửa Đôi (X: 14..24): Gờ trái (14..18, Y: 0..4), Đáy hốc (18..20, Y: 0..3), Gờ phải (20..24, Y: 0..4)
+            CreateStoneRect("P1_FireAlcove_Left", 14f, 0f, 4f, 4f, groundGroup.transform, addInnerBricks: true);
+            CreateStoneRect("P1_FireAlcove_Bed",  18f, 0f, 2f, 3f, groundGroup.transform, addInnerBricks: false);
+            CreateStoneRect("P1_FireAlcove_Right",20f, 0f, 4f, 4f, groundGroup.transform, addInnerBricks: true);
 
-            // === PHẦN 4: KIWI 3 & DỐC BĂNG GIẬT CẤP (120-160) ===
-            // 17. Khối đất đỡ bậc băng 1 (y=8): X: 121 đến 128, Y: 0 đến 5
-            CreateStoneBox("P4_Step1_Base", new Vector2(124.5f, 2.5f), new Vector2(7f, 5f), parent, stoneSprite);
+            // 3. Đáy Hố Chông #1 (X: 33..37, Y: 0..1)
+            CreateStoneRect("P1_SpikePit1_Bottom", 33f, 0f, 4f, 1f, groundGroup.transform, addInnerBricks: false);
 
-            // 18. Khối đất đỡ bậc băng 2 (y=6): X: 128 đến 135, Y: 0 đến 3
-            CreateStoneBox("P4_Step2_Base", new Vector2(131.5f, 1.5f), new Vector2(7f, 3f), parent, stoneSprite);
+            // 4. Bệ mỏng One-Way vàng kim treo dây xích đỡ Dâu Tây #1 (X: 27..32, đỉnh Y = 11.8)
+            CreateSuspendedOneWayBar("P1_OneWay_Berry1", 27f, 11.8f, 5f, gold: true, ceilingY: 18f, groundGroup.transform, propsGroup.transform);
 
-            // 19. Khối đất đỡ bậc băng 3 (y=4): X: 135 đến 145, Y: 0 đến 1
-            CreateStoneBox("P4_Step3_Base", new Vector2(140f, 0.5f), new Vector2(10f, 1f), parent, stoneSprite);
+            // --- PHẦN 2: KIWI #1 & ĐỆM LÒ XO (40..80) ---
+            // 5. Đài Tế Lửa Kiwi #1 (X: 48..56): Gờ trái (48..50, Y: 0..4), Đáy hốc 4 Vạc Lửa (50..54, Y: 0..3), Gờ phải (54..56, Y: 0..4)
+            CreateStoneRect("P2_Kiwi1Altar_Left", 48f, 0f, 2f, 4f, groundGroup.transform, addInnerBricks: false);
+            CreateStoneRect("P2_Kiwi1Altar_Bed",  50f, 0f, 4f, 3f, groundGroup.transform, addInnerBricks: false);
+            CreateStoneRect("P2_Kiwi1Altar_Right",54f, 0f, 2f, 4f, groundGroup.transform, addInnerBricks: false);
 
-            // 20. Đáy hố tử thần DeathPit: X: 145 đến 148, Y: 0 đến 1
-            CreateStoneBox("P4_DeathPitBottom", new Vector2(146.5f, 0.5f), new Vector2(3f, 1f), parent, stoneSprite);
+            // Thanh bệ treo xích sắt phía trên Kiwi #1 (X: 50..54, đỉnh Y = 10.5)
+            CreateSuspendedOneWayBar("P2_OneWay_AboveKiwi1", 50f, 10.5f, 4f, gold: false, ceilingY: 18f, groundGroup.transform, propsGroup.transform);
 
-            // 21. Thềm đá ngắn làm chỗ nghỉ giữa hai dải băng: X: 156 đến 158, Y: 0 đến 4
-            CreateStoneBox("P4_ExitLedge", new Vector2(157f, 2f), new Vector2(2f, 4f), parent, stoneSprite);
+            // 6. Đáy Hố Chông Sâu #2 (X: 56..60, Y: 0..1)
+            CreateStoneRect("P2_SpikePit2_Bottom", 56f, 0f, 4f, 1f, groundGroup.transform, addInnerBricks: false);
 
-            // 22. Bệ trần treo gai Hình 4: X: 136 đến 144, Y: 19 đến 20
-            CreateStoneBox("P4_CeilingBox", new Vector2(140f, 19.5f), new Vector2(8f, 1f), parent, stoneSprite);
+            // 7. Thềm đá đặt Đệm lò xo Trampoline (X: 68..73, Y: 0..4)
+            CreateStoneRect("P2_TrampolineLedge", 68f, 0f, 5f, 4f, groundGroup.transform, addInnerBricks: true);
 
-            // === PHẦN 5: VỀ ĐÍCH (160-200) ===
-            // 23. Đáy vực lửa cuối: X: 168 đến 175, Y: 0 đến 1 (sàn đáy sâu y=1)
-            CreateStoneBox("P5_FinalPitBottom", new Vector2(171.5f, 0.5f), new Vector2(7f, 1f), parent, stoneSprite);
+            // 8. Vách đá cao nối Phần 2 sang Phần 3 (X: 73..82, Y: 0..6)
+            CreateStoneRect("P2_P3_StepUpWall", 73f, 0f, 9f, 6f, groundGroup.transform, addInnerBricks: true);
 
-            // 24. Thềm Đích Cuối Màn: X: 187 đến 205, Y: 0 đến 4 (dài 18 units, dải băng cuối kéo dài tới X=187)
-            CreateStoneBox("P5_VictoryAltarPlatform", new Vector2(196f, 2f), new Vector2(18f, 4f), parent, stoneSprite);
+            // --- PHẦN 3: HỒ LỬA NGẦM & KIWI #2 (80..120) ---
+            // 9. Đáy Hồ Lửa Ngầm (X: 82..118, Y: 0..1)
+            CreateStoneRect("P3_LavaLakeFloor", 82f, 0f, 36f, 1f, groundGroup.transform, addInnerBricks: false);
 
-            // 25. Bệ trần treo gai và cầu gai Hình 5: X: 177 đến 185, Y: 19 đến 20
-            CreateStoneBox("P5_CeilingBox", new Vector2(181f, 19.5f), new Vector2(8f, 1f), parent, stoneSprite);
+            // 10. Trụ đá giữa Hồ Lửa Ngầm (X: 96..101, Y: 1..5, đỡ mũ băng ở Y: 5..6)
+            CreateStoneRect("P3_CenterPillarBase", 96f, 1f, 5f, 4f, groundGroup.transform, addInnerBricks: true);
+
+            // 11. Vách núi cao đón người chơi lên đỉnh Thác Băng Phần 4 (X: 118..122, Y: 0..8)
+            CreateStoneRect("P3_P4_HighCliffWall", 118f, 0f, 4f, 8f, groundGroup.transform, addInnerBricks: true);
+
+            // --- PHẦN 4: THÁC BĂNG GIẬT CẤP 3 BẬC & HỐ TỬ THẦN (120..160) ---
+            // 12. Chân đá đỡ Bậc Băng 1 (X: 122..129, Y: 0..5)
+            CreateStoneRect("P4_Step1_StoneBase", 122f, 0f, 7f, 5f, groundGroup.transform, addInnerBricks: true);
+
+            // 13. Chân đá đỡ Bậc Băng 2 (X: 129..136, Y: 0..3)
+            CreateStoneRect("P4_Step2_StoneBase", 129f, 0f, 7f, 3f, groundGroup.transform, addInnerBricks: true);
+
+            // 14. Chân đá đỡ Bậc Băng 3 (X: 136..142, Y: 0..1) + Trụ Đá Mỏ Neo Co-op trước Hố Tử Thần (X: 142..145, Y: 0..4)
+            CreateStoneRect("P4_Step3_StoneBase", 136f, 0f, 6f, 1f, groundGroup.transform, addInnerBricks: false);
+            CreateStoneRect("P4_CoopAnchorLedge", 142f, 0f, 3f, 4f, groundGroup.transform, addInnerBricks: true);
+
+            // 15. Đáy Hố Tử Thần Vĩnh Viễn (X: 145..148, Y: 0..1, rộng đúng 3 tiles = 48px)
+            CreateStoneRect("P4_DeathPitFloor", 145f, 0f, 3f, 1f, groundGroup.transform, addInnerBricks: false);
+
+            // 16. Trụ đá ngăn cách cuối Phần 4 (X: 156..158, Y: 0..4)
+            CreateStoneRect("P4_DividerLedge", 156f, 0f, 2f, 4f, groundGroup.transform, addInnerBricks: false);
+
+            // --- PHẦN 5: VỀ ĐÍCH - HÀNH LANG CON LẮC & ĐIỆN THỜ CỔNG THẦN (160..200) ---
+            // 17. Đáy Vực Lửa Cuối (X: 168..175, Y: 0..1)
+            CreateStoneRect("P5_FinalFirePitFloor", 168f, 0f, 7f, 1f, groundGroup.transform, addInnerBricks: false);
+
+            // 18. Thềm Điện Thờ Đích (X: 187..200, Y: 0..4) + Bục Thép Tế Lễ (X: 190..198, Y: 4..5)
+            CreateStoneRect("P5_VictoryAltarPlatform", 187f, 0f, 13f, 4f, groundGroup.transform, addInnerBricks: true);
+            CreateSteelBeam("P5_AltarRaisedDais", 190f, 4f, 8f, pillarsGroup.transform, withCollider: true, sortingOrder: 2);
+
+            // 19. Thùng gỗ trang trí (Boxes) tạo điểm nhấn thị giác
+            Sprite box1Sprite = LoadFirstSprite(Box1Path, "Idle_0");
+            Sprite box3Sprite = LoadFirstSprite(Box3Path, "Idle_0");
+            if (box1Sprite != null)
+            {
+                CreateDecoProp("P1_DecoCrate_Box1", new Vector3(15.4f, 4.75f, 0f), box1Sprite, propsGroup.transform, sortingOrder: 2);
+            }
+            if (box3Sprite != null)
+            {
+                CreateDecoProp("P2_DecoCrate_Box3", new Vector3(75.1f, 6.75f, 0f), box3Sprite, propsGroup.transform, sortingOrder: 2);
+            }
         }
 
-        private static GameObject CreateStoneBox(string name, Vector2 center, Vector2 size, Transform parent, Sprite sprite)
+        private static GameObject CreateStoneRect(string name, float xLeft, float yBottom, float width, float height, Transform parent, bool addInnerBricks)
         {
+            Vector2 center = new Vector2(xLeft + width * 0.5f, yBottom + height * 0.5f);
+            Vector2 size = new Vector2(width, height);
+
             GameObject boxGo = new GameObject(name);
             boxGo.transform.SetParent(parent);
             boxGo.transform.position = new Vector3(center.x, center.y, 0f);
@@ -384,9 +511,9 @@ namespace OneHitDown.EditorTools
             if (groundLayer >= 0) boxGo.layer = groundLayer;
 
             SpriteRenderer sr = boxGo.AddComponent<SpriteRenderer>();
-            sr.sprite = sprite;
-            sr.drawMode = SpriteDrawMode.Sliced; // 9-slice: 4 góc giữ nguyên 1 tile, cạnh và lõi theo size
-            sr.tileMode = SpriteTileMode.Continuous; // Cạnh gạch lặp theo tile thay vì bị kéo giãn
+            sr.sprite = stoneBlockSprite;
+            sr.drawMode = SpriteDrawMode.Sliced;
+            sr.tileMode = SpriteTileMode.Continuous;
             sr.size = size;
             sr.sortingOrder = 1;
 
@@ -394,150 +521,216 @@ namespace OneHitDown.EditorTools
             col.size = size;
             col.offset = Vector2.zero;
 
+            // Điểm xuyết các cụm gạch đá lẻ (32x32 = 2x2 units) bên trong lòng khối đá lớn
+            if (addInnerBricks && stoneInnerBrickSprite != null && width >= 3f && height >= 3f)
+            {
+                int wInt = Mathf.RoundToInt(width);
+                int hInt = Mathf.RoundToInt(height);
+                for (int r = 1; r < hInt - 1; r += 2)
+                {
+                    for (int c = 1; c < wInt - 1; c += 3)
+                    {
+                        int offsetC = c + ((r / 2) % 2);
+                        if (offsetC + 2 <= wInt - 1 && r + 2 <= hInt - 1)
+                        {
+                            GameObject brickChild = new GameObject($"InnerBrick_{r}_{offsetC}");
+                            brickChild.transform.SetParent(boxGo.transform, false);
+                            float localX = -width * 0.5f + offsetC + 1.0f;
+                            float localY = height * 0.5f - r - 1.0f;
+                            brickChild.transform.localPosition = new Vector3(localX, localY, 0f);
+
+                            SpriteRenderer bsr = brickChild.AddComponent<SpriteRenderer>();
+                            bsr.sprite = stoneInnerBrickSprite;
+                            bsr.sortingOrder = 2;
+                        }
+                    }
+                }
+            }
+
             return boxGo;
         }
 
-        /// <summary>
-        /// Nền móng đá xám tro trải dài dưới đáy màn hình (Y: -6 đến 0), vẽ bằng khối 9-slice, không có Collider, cùng màu bệ đá.
-        /// </summary>
-        private static void CreateStoneFoundation(string name, Vector2 center, Vector2 size, Transform parent, Sprite sprite)
+        private static void CreateSteelPillar(string name, float xLeft, float yBottom, float height, Transform parent, bool withCollider)
         {
-            GameObject baseGo = new GameObject(name);
-            baseGo.transform.SetParent(parent);
-            baseGo.transform.position = new Vector3(center.x, center.y, 0f);
+            if (steelPillarVertSprite == null) return;
+            GameObject go = new GameObject(name);
+            go.transform.SetParent(parent);
+            go.transform.position = new Vector3(xLeft + 0.5f, yBottom + height * 0.5f, 0f);
 
-            SpriteRenderer sr = baseGo.AddComponent<SpriteRenderer>();
-            sr.sprite = sprite;
+            int groundLayer = LayerMask.NameToLayer("Ground");
+            if (groundLayer >= 0) go.layer = groundLayer;
+
+            SpriteRenderer sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = steelPillarVertSprite;
             sr.drawMode = SpriteDrawMode.Sliced;
             sr.tileMode = SpriteTileMode.Continuous;
-            sr.size = size;
-            sr.color = Color.white; // Cùng màu với các bệ đá như P1_FirePlatform
-            sr.sortingOrder = -1; // Nằm phía sau các bệ đá và khối băng (sortingOrder 1..3)
-        }
+            sr.size = new Vector2(1f, height);
+            sr.sortingOrder = 0;
 
-        /// <summary>
-        /// Nền móng chia đoạn (Y: -4 đến 0, tâm Y = -2, dày 4 tiles). Chừa trống dưới hố lửa ngầm, Hố Tử Thần và vực cuối
-        /// để các hố đọc như vực thật; mỗi đoạn là một khối 9-slice riêng, không Collider.
-        /// Đáy hạ xuống Y=-4 để phủ kín dải nền phông lộ ra dưới đáy cũ (Y=-2).
-        /// </summary>
-        private static void CreateStoneFoundationSegments(Transform parent, Sprite sprite)
-        {
-            // Mỗi phần tử: X bắt đầu, X kết thúc
-            float[,] segments =
+            if (withCollider)
             {
-                { -8f, 82f },    // Phần 1-2 và thềm đầu hồ lửa
-                { 118f, 145f },  // Vách núi và 3 bậc băng
-                { 148f, 168f },  // Sau Hố Tử Thần đến mép vực cuối
-                { 175f, 212f }   // Thềm vực cuối đến Đích
-            };
-
-            for (int i = 0; i < segments.GetLength(0); i++)
-            {
-                float start = segments[i, 0];
-                float end = segments[i, 1];
-                CreateStoneFoundation($"Stone_Foundation_{i + 1}", new Vector2((start + end) * 0.5f, -2f), new Vector2(end - start, 4f), parent, sprite);
+                BoxCollider2D col = go.AddComponent<BoxCollider2D>();
+                col.size = new Vector2(1f, height);
             }
         }
 
-        private static void CreateOneWayPlatform(string name, Vector2 center, Vector2 size, Transform parent, Sprite sprite)
+        private static void CreateSteelBeam(string name, float xLeft, float yBottom, float width, Transform parent, bool withCollider, int sortingOrder = 2)
         {
+            if (steelBeamHorizSprite == null) return;
+            GameObject go = new GameObject(name);
+            go.transform.SetParent(parent);
+            go.transform.position = new Vector3(xLeft + width * 0.5f, yBottom + 0.5f, 0f);
+
+            int groundLayer = LayerMask.NameToLayer("Ground");
+            if (groundLayer >= 0) go.layer = groundLayer;
+
+            SpriteRenderer sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = steelBeamHorizSprite;
+            sr.drawMode = SpriteDrawMode.Sliced;
+            sr.tileMode = SpriteTileMode.Continuous;
+            sr.size = new Vector2(width, 1f);
+            sr.sortingOrder = sortingOrder;
+
+            if (withCollider)
+            {
+                BoxCollider2D col = go.AddComponent<BoxCollider2D>();
+                col.size = new Vector2(width, 1f);
+            }
+        }
+
+        private static void CreateSteelBlock2x2(string name, float xLeft, float yBottom, Transform parent, bool withCollider = false)
+        {
+            if (steelBlock2x2Sprite == null) return;
+            GameObject go = new GameObject(name);
+            go.transform.SetParent(parent);
+            go.transform.position = new Vector3(xLeft + 1.0f, yBottom + 1.0f, 0f);
+
+            int groundLayer = LayerMask.NameToLayer("Ground");
+            if (groundLayer >= 0) go.layer = groundLayer;
+
+            SpriteRenderer sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = steelBlock2x2Sprite;
+            sr.sortingOrder = 2;
+
+            if (withCollider)
+            {
+                BoxCollider2D col = go.AddComponent<BoxCollider2D>();
+                col.size = new Vector2(2f, 2f);
+            }
+        }
+
+        private static void CreateSuspendedOneWayBar(string name, float xLeft, float yTop, float width, bool gold, float ceilingY, Transform platformParent, Transform chainParent)
+        {
+            Sprite barSprite = gold ? oneWayGoldSprite : oneWayGreySprite;
+            if (barSprite == null) return;
+
             GameObject platGo = new GameObject(name);
-            platGo.transform.SetParent(parent);
-            platGo.transform.position = new Vector3(center.x, center.y, 0f);
+            platGo.transform.SetParent(platformParent);
+            platGo.transform.position = new Vector3(xLeft + width * 0.5f, yTop - 0.25f, 0f);
 
             int groundLayer = LayerMask.NameToLayer("Ground");
             if (groundLayer >= 0) platGo.layer = groundLayer;
 
             SpriteRenderer sr = platGo.AddComponent<SpriteRenderer>();
-            sr.sprite = sprite;
-            sr.drawMode = SpriteDrawMode.Tiled;
-            sr.size = size;
+            sr.sprite = barSprite;
+            sr.drawMode = SpriteDrawMode.Sliced;
+            sr.tileMode = SpriteTileMode.Continuous;
+            sr.size = new Vector2(width, 0.5f);
             sr.sortingOrder = 2;
 
             BoxCollider2D col = platGo.AddComponent<BoxCollider2D>();
-            col.size = size;
-            col.offset = Vector2.zero;
+            col.size = new Vector2(width, 0.5f);
             col.usedByEffector = true;
 
             PlatformEffector2D effector = platGo.AddComponent<PlatformEffector2D>();
             effector.useOneWay = true;
             effector.useOneWayGrouping = true;
             effector.surfaceArc = 180f;
+
+            // Tạo 2 sợi dây xích treo từ trần xuống thanh bệ
+            Sprite chainSprite = LoadFirstSprite(PlatformChainPath, "Chain_0");
+            if (chainSprite != null)
+            {
+                GameObject chainGroup = new GameObject($"{name}_Chains");
+                chainGroup.transform.SetParent(chainParent);
+                float[] chainXs = { xLeft + 0.5f, xLeft + width - 0.5f };
+                foreach (float cx in chainXs)
+                {
+                    for (float cy = yTop + 0.25f; cy < ceilingY; cy += 0.5f)
+                    {
+                        GameObject link = new GameObject("ChainLink");
+                        link.transform.SetParent(chainGroup.transform);
+                        link.transform.position = new Vector3(cx, cy, 0f);
+                        SpriteRenderer lsr = link.AddComponent<SpriteRenderer>();
+                        lsr.sprite = chainSprite;
+                        lsr.sortingOrder = 0;
+                    }
+                }
+            }
+        }
+
+        private static void CreateDecoProp(string name, Vector3 pos, Sprite sprite, Transform parent, int sortingOrder)
+        {
+            GameObject go = new GameObject(name);
+            go.transform.SetParent(parent);
+            go.transform.position = pos;
+            SpriteRenderer sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = sprite;
+            sr.sortingOrder = sortingOrder;
         }
 
         #endregion
 
-        #region Ice Blocks (Sử dụng trực tiếp IceRoad.prefab chính thức của Tuyên)
-
-        // Ô băng 16x16 đặc, dùng lặp Tiled cho mọi khối IceRoad để không còn khoảng trống
-        private static Sprite iceTileSprite;
+        #region Ice Blocks (Sử dụng trực tiếp IceRoad.prefab chính thức với Sprite 9-Slice 48x48)
 
         private static void BuildAllIceBlocks(Transform parent)
         {
-            iceTileSprite = EnsureIceTileSprite();
-            if (iceTileSprite == null)
-            {
-                Debug.LogWarning("[Level03SceneBuilder] Không tạo được ô băng 16x16, giữ sprite gốc của IceRoad.prefab.");
-            }
+            // Phần 1: Khởi đầu
+            InstantiateIceRoadRect(parent, "P1_IceRoad_Intro",        8f,  0f, 6f,  4f);
+            InstantiateIceRoadRect(parent, "P1_IceRoad_ToSpikePit",  24f,  0f, 9f,  4f);
 
-            // === PHẦN 1: KHỞI ĐẦU ===
-            // Sàn băng làm quen (X: 8 đến 12, Y: 0 đến 4): ngắn 4 tiles, phía sau chỉ là nền đá, chưa có bẫy
-            InstantiateIceRoad(parent, "P1_IceRoad_Intro", new Vector2(10.0f, 2.0f), new Vector2(4f, 4f));
-            // Sàn băng dài hơn (X: 24 đến 33, Y: 0 đến 4): trượt thẳng ra mép hố gai P1_SpikePitBottom
-            InstantiateIceRoad(parent, "P1_IceRoad_Cont", new Vector2(28.5f, 2.0f), new Vector2(9f, 4f));
+            // Phần 2: Đà trượt băng nối Phần 1 -> Phần 2 & Sàn băng đáp sau hố gai
+            InstantiateIceRoadRect(parent, "P2_IceRoad_Runup",       37f,  0f, 11f, 4f);
+            InstantiateIceRoadRect(parent, "P2_IceRoad_Landing",     60f,  0f, 8f,  4f);
 
-            // === PHẦN 2: KIWI 1 ===
-            // Đường trượt băng dài nhất đoạn đầu (X: 37 đến 48, Y: 0 đến 4): đáp xuống sau hố gai, trượt tới cụm vạc lửa ở cuối
-            InstantiateIceRoad(parent, "P2_IceRoad_Runup", new Vector2(42.5f, 2.0f), new Vector2(11f, 4f));
-            // Sàn băng tiếp đất sau hố gai (X: 60 đến 68, Y: 0 đến 4, dày 4 tiles)
-            InstantiateIceRoad(parent, "P2_IceRoad_Landing", new Vector2(64.0f, 2.0f), new Vector2(8f, 4f));
+            // Phần 3: Mũ băng trên đỉnh cột trụ giữa Hồ Lửa Ngầm
+            InstantiateIceRoadRect(parent, "P3_IceRoad_CenterPillar",96f,  5f, 5f,  1f);
 
-            // === PHẦN 3: KIWI 2 ===
-            // Sàn băng trên đỉnh cột trụ giữa hồ lửa (X: 97 đến 101, Y: 5 đến 6, dày 1 tile)
-            InstantiateIceRoad(parent, "P3_IceRoad_CenterPillar", new Vector2(99.0f, 5.5f), new Vector2(4f, 1f));
+            // Phần 4: Thác băng giật cấp 3 bậc & Sàn băng sau Hố Tử Thần
+            InstantiateIceRoadRect(parent, "P4_IceRoad_Slope1",     122f,  5f, 7f,  3f);
+            InstantiateIceRoadRect(parent, "P4_IceRoad_Slope2",     129f,  3f, 7f,  3f);
+            InstantiateIceRoadRect(parent, "P4_IceRoad_Slope3",     136f,  1f, 6f,  3f);
+            InstantiateIceRoadRect(parent, "P4_IceRoad_AfterPit",   148f,  0f, 8f,  4f);
 
-            // === PHẦN 4: KIWI 3 & 3 BẬC DỐC BĂNG GIẬT CẤP ===
-            // Bậc 1 (X: 121 đến 128, Y: 5 đến 8, dày 3 tiles, ngồi trên trụ đá y=0..5)
-            InstantiateIceRoad(parent, "P4_IceRoad_Slope1", new Vector2(124.5f, 6.5f), new Vector2(7f, 3f));
-            // Bậc 2 (X: 128 đến 135, Y: 3 đến 6, dày 3 tiles, ngồi trên trụ đá y=0..3)
-            InstantiateIceRoad(parent, "P4_IceRoad_Slope2", new Vector2(131.5f, 4.5f), new Vector2(7f, 3f));
-            // Bậc 3 (X: 135 đến 145, Y: 1 đến 4, dày 3 tiles, ngồi trên gờ đá y=0..1)
-            InstantiateIceRoad(parent, "P4_IceRoad_Slope3", new Vector2(140.0f, 2.5f), new Vector2(10f, 3f));
-            // Sàn băng sau Hố Tử Thần (X: 148 đến 156, Y: 0 đến 4, dày 4 tiles)
-            InstantiateIceRoad(parent, "P4_IceRoad_AfterPit", new Vector2(152.0f, 2.0f), new Vector2(8f, 4f));
-
-            // === PHẦN 5: VỀ ĐÍCH ===
-            // Thềm băng trước vực lửa (X: 158 đến 168, Y: 0 đến 4, dài 10 tiles): trượt thẳng ra mép vực lửa
-            InstantiateIceRoad(parent, "P5_IceRoad_PrePit", new Vector2(163.0f, 2.0f), new Vector2(10f, 4f));
-            // Thềm băng dưới cầu gai con lắc (X: 175 đến 187, Y: 0 đến 4, dài 12 tiles): dải băng dài nhất màn
-            InstantiateIceRoad(parent, "P5_IceRoad_PendulumZone", new Vector2(181.0f, 2.0f), new Vector2(12f, 4f));
+            // Phần 5: Thềm băng trước vực lửa cuối & Hành lang băng dưới Cầu Gai Con Lắc
+            InstantiateIceRoadRect(parent, "P5_IceRoad_PrePit",     158f,  0f, 10f, 4f);
+            InstantiateIceRoadRect(parent, "P5_IceRoad_Pendulum",   175f,  0f, 12f, 4f);
         }
 
-        private static void InstantiateIceRoad(Transform parent, string name, Vector2 center, Vector2 size)
+        private static void InstantiateIceRoadRect(Transform parent, string name, float xLeft, float yBottom, float width, float height)
         {
             GameObject prefab = LoadPrefab("IceRoad");
             if (prefab == null) return;
+
+            Vector2 center = new Vector2(xLeft + width * 0.5f, yBottom + height * 0.5f);
+            Vector2 size = new Vector2(width, height);
 
             GameObject inst = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
             inst.name = name;
             inst.transform.position = new Vector3(center.x, center.y, 0f);
 
-            // SpriteRenderer khối băng
             SpriteRenderer sr = inst.GetComponent<SpriteRenderer>();
             if (sr != null)
             {
-                // Sprite gốc 49x80 có viền trong suốt và phần thân hẹp nên lặp ra khoảng trống; dùng ô lõi 16x16 đặc
-                if (iceTileSprite != null) sr.sprite = iceTileSprite;
-                sr.drawMode = SpriteDrawMode.Tiled;
+                if (iceBlock9SliceSprite != null) sr.sprite = iceBlock9SliceSprite;
+                sr.drawMode = SpriteDrawMode.Sliced;
                 sr.tileMode = SpriteTileMode.Continuous;
                 sr.size = size;
                 sr.sortingOrder = 3;
             }
 
-            // Đổi sprite trong Editor làm Unity tự co scale Transform (16/49 x 16/80); trả về 1 để size, collider, hạt bụi đúng kích thước
             inst.transform.localScale = Vector3.one;
 
-            // Collider Solid & Trigger
             foreach (BoxCollider2D col in inst.GetComponents<BoxCollider2D>())
             {
                 if (col.isTrigger)
@@ -552,7 +745,6 @@ namespace OneHitDown.EditorTools
                 }
             }
 
-            // Hạt bụi tuyết trên mặt băng
             ParticleSystem dust = inst.GetComponentInChildren<ParticleSystem>();
             if (dust != null)
             {
@@ -568,7 +760,7 @@ namespace OneHitDown.EditorTools
 
         private static void BuildModule3Gadgets(Transform parent)
         {
-            // 1. ĐỆM LÒ XO TRAMPOLINE (Hình 2: X=70.5, Y=4.25f, nảy lên vách y=6)
+            // 1. ĐỆM LÒ XO TRAMPOLINE (Phần 2: X = 70.5, Y = 4.25, bật lên vách Y = 6)
             GameObject trampGo = InstantiatePrefab("Trampoline", parent);
             if (trampGo != null)
             {
@@ -576,12 +768,12 @@ namespace OneHitDown.EditorTools
                 trampGo.transform.position = new Vector3(70.5f, 4.25f, 0f);
             }
 
-            // 2. BỆ ĐÁ SỤP FALLING PLATFORM (Hình 1: Bệ 1 tại x=18, y=8.0; Bệ 2 tại x=23, y=10.0)
+            // 2. BỆ ĐÁ SỤP FALLING PLATFORM (Phần 1: 2 bệ lên Dâu Tây #1; Phần 3: 1 bệ dưới Dâu Tây #2)
             GameObject fp1 = InstantiatePrefab("FallingPlatform", parent);
             if (fp1 != null)
             {
                 fp1.name = "P1_FallingPlatform_1";
-                fp1.transform.position = new Vector3(18.0f, 8.0f, 0f);
+                fp1.transform.position = new Vector3(18.0f, 7.8f, 0f);
             }
 
             GameObject fp2 = InstantiatePrefab("FallingPlatform", parent);
@@ -591,66 +783,80 @@ namespace OneHitDown.EditorTools
                 fp2.transform.position = new Vector3(23.0f, 10.0f, 0f);
             }
 
-            // 3. QUẠT GIÓ FANTRAP THỔI NGANG (Hình 4: gắn vách trái x=120.5, y=9.0 thổi sang phải)
-            GameObject fanH = InstantiatePrefab("FanTrap", parent);
-            if (fanH != null)
+            GameObject fp3 = InstantiatePrefab("FallingPlatform", parent);
+            if (fp3 != null)
             {
-                fanH.name = "P4_FanTrap_Horizontal";
-                fanH.transform.position = new Vector3(120.5f, 9.0f, 0f);
-                FanTrap ft = fanH.GetComponent<FanTrap>();
-                if (ft != null)
-                {
-                    SerializedObject so = new SerializedObject(ft);
-                    so.FindProperty("windDirection").vector2Value = Vector2.right;
-                    so.FindProperty("windForce").floatValue = 15f;
-                    so.FindProperty("isActive").boolValue = true;
-                    so.ApplyModifiedProperties();
-
-                    Transform wz = fanH.transform.Find("WindZone");
-                    if (wz != null)
-                    {
-                        BoxCollider2D wzCol = wz.GetComponent<BoxCollider2D>();
-                        if (wzCol != null)
-                        {
-                            wzCol.size = new Vector2(10f, 3.0f);
-                            wzCol.offset = new Vector2(5.0f, 0f);
-                        }
-                    }
-                }
+                fp3.name = "P3_FallingPlatform_Berry2";
+                fp3.transform.position = new Vector3(114.0f, 10.0f, 0f);
             }
 
-            // 4. HỐ TỬ THẦN DEATHPIT (Hình 4: X=145 đến 148, Y=4.0, rộng đúng 3 ô = 48px)
+            // 3. CỐI XAY GIÓ NGANG FANTRAP (Phần 4: cặp quạt gắn trên trụ thép X = 120.3, Y = 9.5 & 11.0 thổi sang phải)
+            CreateHorizontalFan(parent, "P4_FanTrap_Horizontal_Lower", new Vector3(120.3f, 9.5f, 0f));
+            CreateHorizontalFan(parent, "P4_FanTrap_Horizontal_Upper", new Vector3(120.3f, 11.0f, 0f));
+
+            // 4. HỐ TỬ THẦN VĨNH VIỄN DEATHPIT (Phần 4: X = 145..148, Y = 3.35, rộng đúng 3 tiles = 48px)
             GameObject dp1 = InstantiatePrefab("DeathPit", parent);
             if (dp1 != null)
             {
                 dp1.name = "P4_DeathPit_Block1";
-                dp1.transform.position = new Vector3(145.5f, 4.0f, 0f);
+                dp1.transform.position = new Vector3(145.75f, 3.35f, 0f);
             }
 
             GameObject dp2 = InstantiatePrefab("DeathPit", parent);
             if (dp2 != null)
             {
                 dp2.name = "P4_DeathPit_Block2";
-                dp2.transform.position = new Vector3(146.875f, 4.0f, 0f);
+                dp2.transform.position = new Vector3(147.25f, 3.35f, 0f);
             }
 
             // 5. MŨI TÊN ĐẨY KHÍ ARROWBOOSTER:
-            // Hình 3: Treo lơ lửng tại X=109, Y=7.0 phóng lên Dâu Tây #2
+            // Phần 3: Treo lơ lửng tại X = 109.5, Y = 7.5 phóng lên Dâu Tây #2
             GameObject ab1 = InstantiatePrefab("ArrowBooster", parent);
             if (ab1 != null)
             {
                 ab1.name = "P3_ArrowBooster_To_Berry2";
-                ab1.transform.position = new Vector3(109.0f, 7.0f, 0f);
-                SetupArrowBooster(ab1, new Vector2(1f, 0.8f).normalized, 14f);
+                ab1.transform.position = new Vector3(109.5f, 7.5f, 0f);
+                SetupArrowBooster(ab1, new Vector2(1f, 0.85f).normalized, 14f);
             }
 
-            // Hình 5: Phóng vượt vực lửa cuối (X=171.5, Y=5.5)
+            // Phần 5: Phóng vượt vực lửa cuối (X = 171.5, Y = 6.2)
             GameObject ab2 = InstantiatePrefab("ArrowBooster", parent);
             if (ab2 != null)
             {
                 ab2.name = "P5_ArrowBooster_FinalPit";
-                ab2.transform.position = new Vector3(171.5f, 5.5f, 0f);
+                ab2.transform.position = new Vector3(171.5f, 6.2f, 0f);
                 SetupArrowBooster(ab2, new Vector2(1f, 0.7f).normalized, 14f);
+            }
+        }
+
+        private static void CreateHorizontalFan(Transform parent, string name, Vector3 pos)
+        {
+            GameObject fanGo = InstantiatePrefab("FanTrap", parent);
+            if (fanGo == null) return;
+
+            fanGo.name = name;
+            fanGo.transform.position = pos;
+            fanGo.transform.rotation = Quaternion.Euler(0f, 0f, -90f); // Xoay mặt quạt hướng sang phải
+
+            FanTrap ft = fanGo.GetComponent<FanTrap>();
+            if (ft != null)
+            {
+                SerializedObject so = new SerializedObject(ft);
+                so.FindProperty("windDirection").vector2Value = Vector2.right;
+                so.FindProperty("windForce").floatValue = 15f;
+                so.FindProperty("isActive").boolValue = true;
+                so.ApplyModifiedProperties();
+
+                Transform wz = fanGo.transform.Find("WindZone");
+                if (wz != null)
+                {
+                    BoxCollider2D wzCol = wz.GetComponent<BoxCollider2D>();
+                    if (wzCol != null)
+                    {
+                        wzCol.size = new Vector2(2.0f, 12.0f);
+                        wzCol.offset = new Vector2(0f, 6.25f);
+                    }
+                }
             }
         }
 
@@ -676,62 +882,75 @@ namespace OneHitDown.EditorTools
 
         private static void BuildModule2Mocks(Transform parent)
         {
-            Sprite fireOff = LoadFirstSprite(FireOffPath, "Off_0");
-            Sprite fireHit = LoadFirstSprite(FireHitPath, "Hit (16x32)_0");
-            Sprite[] fireOnFrames = LoadIndexedSprites(FireOnPath, "On (16x32)", 3);
+            // Cắt chuẩn từng khung 16x32 (1x2 units, tâm chính giữa) cho Vạc Lửa để không dùng nhầm sprite bị auto-slice gộp 3 đế (48x17)
+            Sprite fireOff = EnsureExtraSprite(FireOffPath, "Fire_Off_Full16x32", new Rect(0f, 0f, 16f, 32f), Vector4.zero);
+            Sprite fireHit = EnsureExtraSprite(FireHitPath, "Fire_Hit_Full16x32_0", new Rect(0f, 0f, 16f, 32f), Vector4.zero);
+            Sprite[] fireOnFrames = new Sprite[3]
+            {
+                EnsureExtraSprite(FireOnPath, "Fire_On_Full16x32_0", new Rect(0f,  0f, 16f, 32f), Vector4.zero),
+                EnsureExtraSprite(FireOnPath, "Fire_On_Full16x32_1", new Rect(16f, 0f, 16f, 32f), Vector4.zero),
+                EnsureExtraSprite(FireOnPath, "Fire_On_Full16x32_2", new Rect(32f, 0f, 16f, 32f), Vector4.zero)
+            };
             Sprite spikesSprite = LoadFirstSprite(SpikesTexturePath, "Idle_0");
 
-            // 1. CHÔNG GAI TRẦN VÀ SÀN:
-            CreateSpikeRow("P1_CeilingSpikes", new Vector2(20f, 18.25f), 7, parent, spikesSprite, pointingDown: true);
-            CreateSpikeRow("P2_CeilingSpikes", new Vector2(59f, 18.25f), 6, parent, spikesSprite, pointingDown: true);
-            CreateSpikeRow("P3_CeilingSpikes", new Vector2(100f, 18.25f), 6, parent, spikesSprite, pointingDown: true);
-            CreateSpikeRow("P4_CeilingSpikes", new Vector2(140f, 18.25f), 6, parent, spikesSprite, pointingDown: true);
-            CreateSpikeRow("P5_CeilingSpikes", new Vector2(181f, 18.25f), 6, parent, spikesSprite, pointingDown: true);
+            // 1. CHÔNG GAI TRẦN (Gắn sát đáy các vòm trần đá):
+            CreateSpikeRowFromLeft("P1_CeilingSpikes",      16f, 16.5f, 8, parent, spikesSprite, pointingDown: true);
+            CreateSpikeRowFromLeft("P1_P2_ArchSpikes",      36f, 13.5f, 2, parent, spikesSprite, pointingDown: true);
+            CreateSpikeRowFromLeft("P2_CeilingSpikes",      56f, 16.5f, 6, parent, spikesSprite, pointingDown: true);
+            CreateSpikeRowFromLeft("P3_CeilingSpikes",      96f, 16.5f, 8, parent, spikesSprite, pointingDown: true);
+            CreateSpikeRowFromLeft("P4_CeilingSpikes",     136f, 15.5f, 8, parent, spikesSprite, pointingDown: true);
+            CreateSpikeRowFromLeft("P5_CeilingSpikes",     177f, 16.5f, 8, parent, spikesSprite, pointingDown: true);
 
-            // Hố chông gai cuối dải băng thứ hai ở Hình 1 (X: 33 đến 37, Y = 1.25)
-            CreateSpikeRow("P1_FloorSpikes_Pit", new Vector2(35f, 1.25f), 4, parent, spikesSprite, pointingDown: false);
+            // 2. CHÔNG GAI ĐÁY HỐ SÀN:
+            CreateSpikeRowFromLeft("P1_FloorSpikes_Pit1",   33f,  1.5f, 4, parent, spikesSprite, pointingDown: false);
+            CreateSpikeRowFromLeft("P2_FloorSpikes_Pit2",   56f,  1.5f, 4, parent, spikesSprite, pointingDown: false);
 
-            // Hố chông gai sàn Hình 2 (X: 56.5 đến 59.5, Y = 1.25) — bắt buộc Nhảy Đôi
-            CreateSpikeRow("P2_FloorSpikes_Pit", new Vector2(58f, 1.25f), 4, parent, spikesSprite, pointingDown: false);
+            // 3. VẠC LỬA CHU KỲ (2s tắt - 0.35s báo - 1s bật, đặt âm trong hốc đá sao cho mặt vạc khớp mặt sàn):
+            // Phần 1: Hốc 2 Vạc Lửa (X = 18.5 & 19.5, tâm Y = 4.0 -> đế vạc nằm ở Y = 3..4, ngọn lửa ở Y = 4..5)
+            CreateMockFireTrap(parent, "P1_FireTrap_0", new Vector3(18.5f, 4.0f, 0f), fireOff, fireHit, fireOnFrames, previewHitState: false, frameIdx: 0);
+            CreateMockFireTrap(parent, "P1_FireTrap_1", new Vector3(19.5f, 4.0f, 0f), fireOff, fireHit, fireOnFrames, previewHitState: true,  frameIdx: 1);
 
-            // 2. VẠC LỬA CHU KỲ (2s tắt - 0.35s báo - 1s bật):
-            // Hình 1: Vạc Lửa Đơn (X=20.5, Y=4.0)
-            CreateMockFireTrap(parent, "P1_FireTrap_Single", new Vector3(20.5f, 4.0f, 0f), fireOff, fireHit, fireOnFrames);
-
-            // Hình 2: Cụm 4 Vạc Lửa dưới Kiwi 1 (X=50.0, 51.5, 53.0, 54.5 tại Y=4.0)
+            // Phần 2: Đài Tế Lửa 4 Vạc dưới Kiwi #1 (X = 50.5, 51.5, 52.5, 53.5 tại Y = 4.0)
             for (int i = 0; i < 4; i++)
             {
-                CreateMockFireTrap(parent, $"P2_FireTrap_Kiwi1_{i}", new Vector3(50.0f + i * 1.5f, 4.0f, 0f), fireOff, fireHit, fireOnFrames);
+                bool isHitPreview = (i == 1 || i == 2);
+                CreateMockFireTrap(parent, $"P2_FireTrap_Kiwi1_{i}", new Vector3(50.5f + i * 1.0f, 4.0f, 0f), fireOff, fireHit, fireOnFrames, previewHitState: isHitPreview, frameIdx: i);
             }
 
-            // Hình 3: Hồ Lửa Ngầm Liên Hoàn ở đáy vực (X: 83 đến 117 tại Y=1.0)
-            for (float x = 83.5f; x <= 116.5f; x += 1.8f)
+            // Phần 3: Hồ Lửa Ngầm Liên Hoàn ở 2 lòng hồ (Trái: X = 82..96, Phải: X = 101..118, tâm Y = 2.0 trên đáy Y = 1.0)
+            for (int fx = 82; fx < 96; fx++)
             {
-                if (x >= 96.5f && x <= 101.5f) continue;
-                CreateMockFireTrap(parent, $"P3_LavaFireTrap_{x:F0}", new Vector3(x, 1.0f, 0f), fireOff, fireHit, fireOnFrames);
+                bool isHitPreview = (fx % 2 != 0);
+                CreateMockFireTrap(parent, $"P3_LavaFire_Left_{fx}", new Vector3(fx + 0.5f, 2.0f, 0f), fireOff, fireHit, fireOnFrames, previewHitState: isHitPreview, frameIdx: fx);
+            }
+            for (int fx = 101; fx < 118; fx++)
+            {
+                bool isHitPreview = (fx % 2 == 0);
+                CreateMockFireTrap(parent, $"P3_LavaFire_Right_{fx}", new Vector3(fx + 0.5f, 2.0f, 0f), fireOff, fireHit, fireOnFrames, previewHitState: isHitPreview, frameIdx: fx);
             }
 
-            // Hình 4: 3 Vạc lửa đáy hố tử thần DeathPit (X: 145.5, 146.5, 147.5 tại Y=1.0)
+            // Phần 4: 3 Vạc lửa đáy Hố Tử Thần Vĩnh Viễn (X = 145.5, 146.5, 147.5 tại Y = 2.0)
             for (int i = 0; i < 3; i++)
             {
-                CreateMockFireTrap(parent, $"P4_DeathPitFire_{i}", new Vector3(145.5f + i * 1.0f, 1.0f, 0f), fireOff, fireHit, fireOnFrames);
+                CreateMockFireTrap(parent, $"P4_DeathPitFire_{i}", new Vector3(145.5f + i * 1.0f, 2.0f, 0f), fireOff, fireHit, fireOnFrames, previewHitState: false, frameIdx: i);
             }
 
-            // Hình 5: 4 Vạc lửa vực cuối (X: 169.5, 171.0, 172.5, 174.0 tại Y=1.0)
-            for (int i = 0; i < 4; i++)
+            // Phần 5: 7 Vạc lửa Vực Cuối (X = 168.5..174.5 tại Y = 2.0)
+            for (int i = 0; i < 7; i++)
             {
-                CreateMockFireTrap(parent, $"P5_FinalPitFire_{i}", new Vector3(169.5f + i * 1.4f, 1.0f, 0f), fireOff, fireHit, fireOnFrames);
+                bool isHitPreview = (i % 2 != 0);
+                CreateMockFireTrap(parent, $"P5_FinalPitFire_{i}", new Vector3(168.5f + i * 1.0f, 2.0f, 0f), fireOff, fireHit, fireOnFrames, previewHitState: isHitPreview, frameIdx: i);
             }
 
-            // 3. CẦU GAI CON LẮC XÍCH SẮT (Hình 5: treo từ trần x=181, y=19 xuống y=6)
-            BuildMockPendulum(parent, new Vector3(181.0f, 18.5f, 0f), length: 12f);
+            // 4. CẦU GAI CON LẮC XÍCH SẮT (Phần 5: treo từ vòm trần X = 181.0, Y = 16.8 xuống Y = 7.0)
+            BuildMockPendulum(parent, new Vector3(181.0f, 16.8f, 0f), length: 9.8f);
         }
 
-        private static void CreateSpikeRow(string name, Vector2 center, int count, Transform parent, Sprite sprite, bool pointingDown)
+        private static void CreateSpikeRowFromLeft(string name, float xLeft, float yCenter, int count, Transform parent, Sprite sprite, bool pointingDown)
         {
             GameObject row = new GameObject(name);
             row.transform.SetParent(parent);
-            row.transform.position = new Vector3(center.x, center.y, 0f);
+            row.transform.position = new Vector3(xLeft + count * 0.5f, yCenter, 0f);
 
             int trapsLayer = LayerMask.NameToLayer("Traps");
             if (trapsLayer >= 0) row.layer = trapsLayer;
@@ -755,11 +974,11 @@ namespace OneHitDown.EditorTools
 
             BoxCollider2D col = row.AddComponent<BoxCollider2D>();
             col.isTrigger = true;
-            col.size = new Vector2(count * 1.0f, 0.6f);
-            col.offset = Vector2.zero;
+            col.size = new Vector2(count * 1.0f, 0.55f);
+            col.offset = new Vector2(0f, pointingDown ? 0.15f : -0.15f);
         }
 
-        private static void CreateMockFireTrap(Transform parent, string name, Vector3 pos, Sprite off, Sprite hit, Sprite[] onFrames)
+        private static void CreateMockFireTrap(Transform parent, string name, Vector3 pos, Sprite off, Sprite hit, Sprite[] onFrames, bool previewHitState = false, int frameIdx = 0)
         {
             GameObject fireGo = new GameObject(name);
             fireGo.transform.SetParent(parent);
@@ -769,18 +988,29 @@ namespace OneHitDown.EditorTools
             if (trapsLayer >= 0) fireGo.layer = trapsLayer;
 
             SpriteRenderer sr = fireGo.AddComponent<SpriteRenderer>();
-            sr.sprite = off;
+            Sprite initialOn = (onFrames != null && onFrames.Length > 0) ? onFrames[Mathf.Abs(frameIdx) % onFrames.Length] : off;
+            sr.sprite = previewHitState && hit != null ? hit : (initialOn != null ? initialOn : off);
             sr.sortingOrder = 6;
 
+            // Đế vạc lửa (nửa dưới 16x16) có collider Ground để người chơi đứng lên được khi lửa tắt
+            GameObject baseBlock = new GameObject("FireBaseSolid");
+            baseBlock.transform.SetParent(fireGo.transform, false);
+            baseBlock.transform.localPosition = new Vector3(0f, -0.5f, 0f);
+            int groundLayer = LayerMask.NameToLayer("Ground");
+            if (groundLayer >= 0) baseBlock.layer = groundLayer;
+            BoxCollider2D baseCol = baseBlock.AddComponent<BoxCollider2D>();
+            baseCol.size = new Vector2(1.0f, 1.0f);
+
+            // Ngọn lửa (nửa trên 16x16) là Trigger Hazard
             GameObject hitbox = new GameObject("FireHitbox");
-            hitbox.transform.SetParent(fireGo.transform);
-            hitbox.transform.localPosition = new Vector3(0f, 0.75f, 0f);
+            hitbox.transform.SetParent(fireGo.transform, false);
+            hitbox.transform.localPosition = new Vector3(0f, 0.5f, 0f);
             hitbox.tag = "Hazard";
             if (trapsLayer >= 0) hitbox.layer = trapsLayer;
 
             BoxCollider2D hitCol = hitbox.AddComponent<BoxCollider2D>();
             hitCol.isTrigger = true;
-            hitCol.size = new Vector2(1.0f, 1.5f);
+            hitCol.size = new Vector2(0.8f, 0.9f);
 
             MockFireTrap mft = fireGo.AddComponent<MockFireTrap>();
             SerializedObject so = new SerializedObject(mft);
@@ -813,12 +1043,12 @@ namespace OneHitDown.EditorTools
             Sprite chainSprite = LoadFirstSprite(SpikedChainPath, "Chain_0");
             Sprite ballSprite = LoadFirstSprite(SpikedBallPath, "Spiked Ball_0");
 
-            int chainCount = Mathf.RoundToInt(length / 0.5f);
+            int chainCount = Mathf.RoundToInt(length / 0.65f);
             for (int i = 0; i < chainCount; i++)
             {
                 GameObject link = new GameObject($"ChainLink_{i}");
-                link.transform.SetParent(pendulumGo.transform);
-                link.transform.localPosition = new Vector3(0f, -i * 0.5f, 0f);
+                link.transform.SetParent(pendulumGo.transform, false);
+                link.transform.localPosition = new Vector3(0f, -i * 0.65f, 0f);
 
                 SpriteRenderer lsr = link.AddComponent<SpriteRenderer>();
                 lsr.sprite = chainSprite;
@@ -826,7 +1056,7 @@ namespace OneHitDown.EditorTools
             }
 
             GameObject ballGo = new GameObject("Ball_Hazard");
-            ballGo.transform.SetParent(pendulumGo.transform);
+            ballGo.transform.SetParent(pendulumGo.transform, false);
             ballGo.transform.localPosition = new Vector3(0f, -length, 0f);
             ballGo.tag = "Hazard";
 
@@ -843,8 +1073,8 @@ namespace OneHitDown.EditorTools
 
             MockSpikedBallPendulum pendulum = pendulumGo.AddComponent<MockSpikedBallPendulum>();
             SerializedObject so = new SerializedObject(pendulum);
-            so.FindProperty("swingAngle").floatValue = 55f;
-            so.FindProperty("swingSpeed").floatValue = 1.8f;
+            so.FindProperty("swingAngle").floatValue = 48f;
+            so.FindProperty("swingSpeed").floatValue = 2.0f;
             so.FindProperty("armLength").floatValue = length;
             so.FindProperty("ballTransform").objectReferenceValue = ballGo.transform;
             so.ApplyModifiedProperties();
@@ -852,53 +1082,72 @@ namespace OneHitDown.EditorTools
 
         #endregion
 
-        #region Module 4 Mocks (Bệ Nâng, Kiwi, Dâu Tây, Đích)
+        #region Module 4 Mocks (Bệ Nâng kèm Ray Xích, Kiwi [3/3], Dâu Tây, Đích)
 
         private static void BuildModule4Mocks(Transform parent)
         {
             Sprite kiwiSprite = LoadFirstSprite(KiwiPath, "Kiwi_0");
             Sprite strawberrySprite = LoadFirstSprite(StrawberryPath, "Strawberry_0");
-            Sprite platformSprite = LoadFirstSprite(MovingPlatformPath, "Grey On (32x8)_0");
+            // Cắt chuẩn 1 frame 32x8 (2.0 x 0.5 units) cho Bệ Nâng thay vì dùng sprite mặc định bị gộp cả 8 frames (256x8)
+            Sprite greyPlatSprite = EnsureExtraSprite(MovingPlatformGreyPath, "GreyOn_Frame0_32x8", new Rect(0f, 0f, 32f, 8f), Vector4.zero);
+            Sprite brownPlatSprite = EnsureExtraSprite(MovingPlatformBrownPath, "BrownOn_Frame0_32x8", new Rect(0f, 0f, 32f, 8f), Vector4.zero);
+            Sprite chainSprite = LoadFirstSprite(PlatformChainPath, "Chain_0");
             Sprite trophySprite = LoadFirstSprite(TrophyPath, "End (Idle)_0");
             Sprite startSignSprite = LoadFirstSprite(StartSignPath, "Start (Moving) (64x64)_0");
 
-            // 1. BIỂN BÁO XUẤT PHÁT LEVEL START Ở ĐẦU MÀN (X=1.2, Y=4.0)
+            // 1. BỆ XUẤT PHÁT LEVEL START Ở ĐẦU MÀN (X = 2.2, mặt sàn Y = 4.0 -> tâm Y = 6.0 cho sprite 64x64)
             if (startSignSprite != null)
             {
                 GameObject startGo = new GameObject("P1_LevelStart_Sign");
                 startGo.transform.SetParent(parent);
-                startGo.transform.position = new Vector3(1.2f, 4.6f, 0f);
+                startGo.transform.position = new Vector3(2.2f, 6.0f, 0f);
                 SpriteRenderer sr = startGo.AddComponent<SpriteRenderer>();
                 sr.sprite = startSignSprite;
                 sr.sortingOrder = 4;
             }
 
-            // 2. 3 TRÁI KIWI BẮT BUỘC [3/3] ĐỂ MỞ CỔNG:
-            // Trái 1: Kiwi Lửa Thiêu [1/3] (X=52.5, Y=6.5) lơ lửng trên cụm 4 vạc lửa
-            CreateCollectible(parent, "Kiwi_Relic_1", new Vector3(52.5f, 6.5f, 0f), kiwiSprite, isRelic: true, "Kiwi Lửa Thiêu [1/3]");
-
-            // Trái 2: Kiwi Bệ Nâng [2/3] (X=104.0, Y=11.5) trên đỉnh hành trình bệ nâng dọc
-            CreateCollectible(parent, "Kiwi_Relic_2", new Vector3(104.0f, 11.5f, 0f), kiwiSprite, isRelic: true, "Kiwi Bệ Nâng [2/3]");
-
-            // Trái 3: Kiwi Đáy Dốc Băng [3/3] (X=144.0, Y=5.0) sát mép hố tử thần
-            CreateCollectible(parent, "Kiwi_Relic_3", new Vector3(144.0f, 5.0f, 0f), kiwiSprite, isRelic: true, "Kiwi Đáy Dốc Băng [3/3]");
+            // 2. 3 TRÁI KIWI CỔ VẬT BẮT BUỘC [3/3] ĐỂ MỞ CỔNG THẦN:
+            CreateCollectible(parent, "Kiwi_Relic_1", new Vector3(52.0f, 6.6f, 0f), kiwiSprite, isRelic: true, "Kiwi Lửa Thiêu [1/3]");
+            CreateCollectible(parent, "Kiwi_Relic_2", new Vector3(104.5f, 11.8f, 0f), kiwiSprite, isRelic: true, "Kiwi Bệ Nâng [2/3]");
+            CreateCollectible(parent, "Kiwi_Relic_3", new Vector3(148.2f, 5.3f, 0f), kiwiSprite, isRelic: true, "Kiwi Đáy Dốc Băng [3/3]");
 
             // 3. 2 QUẢ THƯỞNG PHỤ: DÂU TÂY
-            // Dâu Tây #1 ở Hình 1: X=29.0, Y=12.5 trên thanh bệ mỏng One-Way
-            CreateCollectible(parent, "Berry_Bonus_1", new Vector3(29.0f, 12.5f, 0f), strawberrySprite, isRelic: false, "Dâu Tây Thưởng #1");
+            CreateCollectible(parent, "Berry_Bonus_1", new Vector3(29.5f, 13.0f, 0f), strawberrySprite, isRelic: false, "Dâu Tây Thưởng #1");
+            CreateCollectible(parent, "Berry_Bonus_2", new Vector3(114.0f, 11.8f, 0f), strawberrySprite, isRelic: false, "Dâu Tây Thưởng #2");
 
-            // Dâu Tây #2 ở Hình 3: X=114.5, Y=11.0 trên bệ cao cạnh bệ nâng
-            CreateCollectible(parent, "Berry_Bonus_2", new Vector3(114.5f, 11.0f, 0f), strawberrySprite, isRelic: false, "Dâu Tây Thưởng #2");
+            // 4. BỆ NÂNG DI ĐỘNG (MovingPlatform) KÈM ĐƯỜNG RAY MẮT XÍCH (Chain.png) KHỚP 100% ẢNH DEMO:
+            // Bệ Nâng Ngang X ở Phần 3: Ray xích từ X = 84.75 -> 94.5 tại Y = 5.5; Bệ đặt tại chính giữa (89.5, 5.5), ghép 2 đốt 32x8 nguyên vẹn (rộng 4.0 units)
+            CreateMovingPlatformWithChainTrack(
+                parent,
+                "P3_MovingPlatform_X",
+                initialPos: new Vector3(89.5f, 5.5f, 0f),
+                trackStart: new Vector3(84.75f, 5.5f, 0f),
+                trackEnd: new Vector3(94.5f, 5.5f, 0f),
+                startOffset: new Vector2(-3.0f, 0f),
+                moveOffset: new Vector2(6.0f, 0f),
+                speed: 3.5f,
+                segmentHalfSpan: 1.0f,
+                colliderWidth: 4.0f,
+                platSprite: brownPlatSprite,
+                chainSprite: chainSprite);
 
-            // 4. BỆ NÂNG DI ĐỘNG (MovingPlatform):
-            // Bệ Nâng Ngang X ở Hình 3: X: 84 -> 94, Y = 5.0
-            CreateMovingPlatform(parent, "P3_MovingPlatform_X", new Vector3(84f, 5.0f, 0f), new Vector2(10f, 0f), speed: 3.5f, platformSprite);
+            // Bệ Nâng Dọc Y ở Phần 3: Ray xích dọc tại X = 104.5 từ Y = 4.25 (dưới bệ) lên tới Y = 11.0 (dưới Kiwi #2); Bệ đặt tại (104.5, 6.8) đúng như ảnh demo
+            CreateMovingPlatformWithChainTrack(
+                parent,
+                "P3_MovingPlatform_Y",
+                initialPos: new Vector3(104.5f, 6.8f, 0f),
+                trackStart: new Vector3(104.5f, 4.25f, 0f),
+                trackEnd: new Vector3(104.5f, 11.0f, 0f),
+                startOffset: new Vector2(0f, -2.55f),
+                moveOffset: new Vector2(0f, 6.75f),
+                speed: 3.0f,
+                segmentHalfSpan: 0.7f,
+                colliderWidth: 3.4f,
+                platSprite: greyPlatSprite,
+                chainSprite: chainSprite);
 
-            // Bệ Nâng Dọc Y ở Hình 3: X = 104, Y: 4.5 -> 10.0 (chở lên Kiwi 2)
-            CreateMovingPlatform(parent, "P3_MovingPlatform_Y", new Vector3(104f, 4.5f, 0f), new Vector2(0f, 5.5f), speed: 3.0f, platformSprite);
-
-            // 5. CÚP CHIẾN THẮNG / CỔNG ĐÍCH CUỐI MÀN (X=192.0, Y=5.0)
-            CreateVictoryAltar(parent, new Vector3(192.0f, 5.0f, 0f), trophySprite);
+            // 5. ĐIỆN THỜ CỔNG THẦN CUỐI MÀN (Đặt trên Bục Thép Tế Lễ Y = 5.0 -> tâm Y = 7.0 cho sprite 64x64)
+            CreateVictoryAltar(parent, new Vector3(194.0f, 7.0f, 0f), trophySprite);
         }
 
         private static void CreateCollectible(Transform parent, string name, Vector3 pos, Sprite sprite, bool isRelic, string itemName)
@@ -925,26 +1174,65 @@ namespace OneHitDown.EditorTools
             so.ApplyModifiedProperties();
         }
 
-        private static void CreateMovingPlatform(Transform parent, string name, Vector3 pos, Vector2 moveOffset, float speed, Sprite sprite)
+        private static void CreateMovingPlatformWithChainTrack(
+            Transform parent,
+            string name,
+            Vector3 initialPos,
+            Vector3 trackStart,
+            Vector3 trackEnd,
+            Vector2 startOffset,
+            Vector2 moveOffset,
+            float speed,
+            float segmentHalfSpan,
+            float colliderWidth,
+            Sprite platSprite,
+            Sprite chainSprite)
         {
+            // Vẽ đường ray mắt xích cố định nối giữa điểm đầu và điểm cuối với bước mắt xích chuẩn 0.75 unit (12px)
+            if (chainSprite != null)
+            {
+                GameObject trackGo = new GameObject($"{name}_ChainTrack");
+                trackGo.transform.SetParent(parent);
+                float dist = Vector3.Distance(trackStart, trackEnd);
+                int steps = Mathf.Max(2, Mathf.RoundToInt(dist / 0.75f));
+                for (int i = 0; i <= steps; i++)
+                {
+                    float t = (float)i / steps;
+                    Vector3 p = Vector3.Lerp(trackStart, trackEnd, t);
+                    GameObject link = new GameObject($"TrackLink_{i}");
+                    link.transform.SetParent(trackGo.transform);
+                    link.transform.position = p;
+                    SpriteRenderer lsr = link.AddComponent<SpriteRenderer>();
+                    lsr.sprite = chainSprite;
+                    lsr.sortingOrder = 1;
+                }
+            }
+
             GameObject platGo = new GameObject(name);
             platGo.transform.SetParent(parent);
-            platGo.transform.position = pos;
+            platGo.transform.position = initialPos;
 
             int groundLayer = LayerMask.NameToLayer("Ground");
             if (groundLayer >= 0) platGo.layer = groundLayer;
 
-            SpriteRenderer sr = platGo.AddComponent<SpriteRenderer>();
-            sr.sprite = sprite;
-            sr.drawMode = SpriteDrawMode.Tiled;
-            sr.size = new Vector2(2.5f, 0.5f);
-            sr.sortingOrder = 4;
+            // Ghép 2 đốt bệ nâng 32x8 nguyên vẹn (không bị cắt cụt đầu bên phải như khi Tiled 3.0 unit trên sheet 256x8)
+            float[] segOffsets = { -segmentHalfSpan, segmentHalfSpan };
+            for (int i = 0; i < segOffsets.Length; i++)
+            {
+                GameObject segGo = new GameObject($"PlatformSegment_{i}");
+                segGo.transform.SetParent(platGo.transform, false);
+                segGo.transform.localPosition = new Vector3(segOffsets[i], 0f, 0f);
+                SpriteRenderer sr = segGo.AddComponent<SpriteRenderer>();
+                sr.sprite = platSprite;
+                sr.sortingOrder = 4 + i;
+            }
 
             BoxCollider2D col = platGo.AddComponent<BoxCollider2D>();
-            col.size = new Vector2(2.5f, 0.5f);
+            col.size = new Vector2(colliderWidth, 0.5f);
 
             MockMovingPlatform mmp = platGo.AddComponent<MockMovingPlatform>();
             SerializedObject so = new SerializedObject(mmp);
+            so.FindProperty("startOffset").vector2Value = startOffset;
             so.FindProperty("moveOffset").vector2Value = moveOffset;
             so.FindProperty("speed").floatValue = speed;
             so.ApplyModifiedProperties();
@@ -962,24 +1250,24 @@ namespace OneHitDown.EditorTools
 
             BoxCollider2D col = altar.AddComponent<BoxCollider2D>();
             col.isTrigger = true;
-            col.size = new Vector2(1.5f, 2.0f);
+            col.size = new Vector2(2.0f, 2.5f);
 
-            MockGoalTrigger goal = altar.AddComponent<MockGoalTrigger>();
+            altar.AddComponent<MockGoalTrigger>();
         }
 
         #endregion
 
-        #region HUD Labels & Signs (Chuẩn theo 5 ảnh thiết kế)
+        #region HUD Labels & Signs
 
         private static void CreateHudLabels(Transform parent)
         {
-            CreateLabel("HUD_Header1", "MÀN 3: HẦM MỘ BĂNG LÃNH & VẠC LỬA [HÌNH 1/5: KHỞI ĐẦU (0-40)]", new Vector3(20f, 16.5f, 0f), parent);
-            CreateLabel("HUD_Header2", "MÀN 3: HẦM MỘ BĂNG LÃNH & VẠC LỬA [HÌNH 2/5: KIWI 1 (40-80)]", new Vector3(60f, 16.5f, 0f), parent);
-            CreateLabel("HUD_Header3", "MÀN 3: HẦM MỘ BĂNG LÃNH & VẠC LỬA [HÌNH 3/5: KIWI 2 (80-120)]", new Vector3(100f, 16.5f, 0f), parent);
-            CreateLabel("HUD_Header4", "MÀN 3: HẦM MỘ BĂNG LÃNH & VẠC LỬA [HÌNH 4/5: KIWI 3 (120-160)]", new Vector3(140f, 16.5f, 0f), parent);
-            CreateLabel("HUD_Header5", "MÀN 3: HẦM MỘ BĂNG LÃNH & VẠC LỬA [HÌNH 5/5: VỀ ĐÍCH (160-200)]", new Vector3(180f, 16.5f, 0f), parent);
+            CreateLabel("HUD_Header1", "MÀN 3: HẦM MỘ BĂNG LÃNH & VẠC LỬA [HÌNH 1/5: KHỞI ĐẦU (0-40)]", new Vector3(20f, 15.2f, 0f), parent);
+            CreateLabel("HUD_Header2", "MÀN 3: HẦM MỘ BĂNG LÃNH & VẠC LỬA [HÌNH 2/5: KIWI 1 (40-80)]", new Vector3(60f, 15.2f, 0f), parent);
+            CreateLabel("HUD_Header3", "MÀN 3: HẦM MỘ BĂNG LÃNH & VẠC LỬA [HÌNH 3/5: KIWI 2 (80-120)]", new Vector3(100f, 15.2f, 0f), parent);
+            CreateLabel("HUD_Header4", "MÀN 3: HẦM MỘ BĂNG LÃNH & VẠC LỬA [HÌNH 4/5: KIWI 3 (120-160)]", new Vector3(140f, 14.5f, 0f), parent);
+            CreateLabel("HUD_Header5", "MÀN 3: HẦM MỘ BĂNG LÃNH & VẠC LỬA [HÌNH 5/5: VỀ ĐÍCH (160-200)]", new Vector3(180f, 15.2f, 0f), parent);
 
-            CreateLabel("HUD_GoalSign", "[OPEN 3/3] CÚP CHIẾN THẮNG", new Vector3(192f, 7.5f, 0f), parent);
+            CreateLabel("HUD_GoalSign", "[OPEN 3/3]", new Vector3(194.0f, 9.5f, 0f), parent);
         }
 
         private static void CreateLabel(string name, string text, Vector3 position, Transform parent)
@@ -1019,35 +1307,13 @@ namespace OneHitDown.EditorTools
         }
 
         /// <summary>
-        /// Đảm bảo Terrain (16x16).png có sprite 9-slice "Terrain (16x16)_StoneBlock" (viền 16px).
-        /// Chỉ thêm 1 sprite mới vào danh sách slice, giữ nguyên các sprite sẵn có và GUID của chúng.
-        /// </summary>
-        private static Sprite EnsureStoneBlockSprite()
-        {
-            float b = StoneBlockBorder;
-            return EnsureExtraSprite(TerrainTexturePath, StoneBlockSpriteName, StoneBlockRect, new Vector4(b, b, b, b));
-        }
-
-        /// <summary>
-        /// Đảm bảo texture có thêm sprite "IceTile" 16x16 lấy từ lõi đặc của khối băng, dùng để lặp Tiled không để lộ khoảng trống.
-        /// </summary>
-        private static Sprite EnsureIceTileSprite()
-        {
-            return EnsureExtraSprite(IceTexturePath, IceTileSpriteName, IceTileRect, Vector4.zero);
-        }
-
-        /// <summary>
-        /// Thêm 1 sprite vào texture (nếu chưa có), đặt mesh FullRect, giữ nguyên các sprite cũ và GUID của chúng.
+        /// Thêm 1 sprite vào texture (nếu chưa có) hoặc cập nhật rect/border, đặt mesh FullRect, giữ nguyên các sprite cũ và GUID của chúng.
         /// </summary>
         private static Sprite EnsureExtraSprite(string texturePath, string spriteName, Rect rect, Vector4 border)
         {
-            Sprite existing = LoadFirstSprite(texturePath, spriteName);
-            if (existing != null && existing.name == spriteName) return existing;
-
             TextureImporter importer = AssetImporter.GetAtPath(texturePath) as TextureImporter;
             if (importer == null) return null;
 
-            // Sliced/Tiled cần mesh FullRect, nếu không Unity cảnh báo và vẽ sai
             TextureImporterSettings settings = new TextureImporterSettings();
             importer.ReadTextureSettings(settings);
             if (settings.spriteMeshType != SpriteMeshType.FullRect)
@@ -1056,6 +1322,9 @@ namespace OneHitDown.EditorTools
                 importer.SetTextureSettings(settings);
                 importer.SaveAndReimport();
             }
+
+            Sprite existing = LoadFirstSprite(texturePath, spriteName);
+            if (existing != null && existing.name == spriteName) return existing;
 
             SpriteDataProviderFactories factory = new SpriteDataProviderFactories();
             factory.Init();
@@ -1076,7 +1345,6 @@ namespace OneHitDown.EditorTools
             rects.Add(block);
             provider.SetSpriteRects(rects.ToArray());
 
-            // Đồng bộ bảng tên - fileID để tham chiếu tới sprite cũ không bị đổi khi reimport
             ISpriteNameFileIdDataProvider nameProvider = provider.GetDataProvider<ISpriteNameFileIdDataProvider>();
             if (nameProvider != null)
             {
@@ -1111,7 +1379,7 @@ namespace OneHitDown.EditorTools
         {
             Sprite[] result = new Sprite[count];
             UnityEngine.Object[] assets = AssetDatabase.LoadAllAssetsAtPath(texturePath);
-            var map = new System.Collections.Generic.Dictionary<string, Sprite>();
+            var map = new Dictionary<string, Sprite>();
 
             foreach (UnityEngine.Object asset in assets)
             {
