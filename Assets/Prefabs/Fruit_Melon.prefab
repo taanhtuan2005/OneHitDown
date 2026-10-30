@@ -143,6 +143,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::OneHitDown.Items.CollectibleItem
   fruitType: 6
-  countsAsRelic: 1
+  countsAsRelic: 0
   scoreValue: 100
   collectedVfxPrefab: {fileID: 0}

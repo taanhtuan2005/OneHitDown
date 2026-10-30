@@ -5,78 +5,104 @@ using UnityEngine;
 
 namespace OneHitDown.Level
 {
+    /// <summary>
+    /// Bệ nâng di động: tuần tra ping-pong giữa 2 điểm và truyền vận tốc cho Player.
+    /// Cơ chế giữ nguyên theo bản mock đã kiểm chứng trên Level_03 (Vector2.MoveTowards +
+    /// normal.y &lt; -0.5f để nhận passenger), chỉ đổi tên lớp sang bản chính thức.
+    /// </summary>
     [RequireComponent(typeof(BoxCollider2D))]
     public sealed class MovingPlatform : MonoBehaviour, IResettable
     {
-        [SerializeField] private Vector2 moveOffset = new Vector2(0f, 3f);
-        [SerializeField] private float moveSpeed = 2f;
+        [Header("Tuần tra Di chuyển")]
+        [SerializeField] private Vector2 startOffset = Vector2.zero;       // Độ lệch điểm đầu A so với vị trí đặt bệ ban đầu trong Scene
+        [SerializeField] private Vector2 moveOffset = new Vector2(8f, 0f); // Khoảng dịch chuyển mục tiêu từ điểm A tới điểm B
+        [SerializeField] private float speed = 3.0f;                       // Vận tốc bệ di chuyển
 
-        private readonly HashSet<PlayerController> passengers = new HashSet<PlayerController>();
-        private Vector3 startPos;
+        private Vector2 initialScenePos;
+        private Vector2 pointA;
+        private Vector2 pointB;
+        private Vector2 targetPoint;
         private Vector2 currentVelocity;
-        private float elapsed;
+        private Vector2 previousPos;
+        private readonly HashSet<PlayerController> passengers = new HashSet<PlayerController>();
 
         private void Awake()
         {
-            startPos = transform.position;
+            initialScenePos = transform.position;
+            pointA = initialScenePos + startOffset;
+            pointB = pointA + moveOffset;
+            targetPoint = pointB;
+            previousPos = initialScenePos;
         }
 
         private void FixedUpdate()
         {
-            elapsed += Time.fixedDeltaTime;
-            float travel = Mathf.PingPong(elapsed * moveSpeed, 1f);
-            Vector3 destination = startPos + new Vector3(moveOffset.x, moveOffset.y, 0f) * travel;
-            Vector3 previousPosition = transform.position;
-            currentVelocity = (destination - previousPosition) / Time.fixedDeltaTime;
-            transform.position = destination;
+            Vector2 currentPos = transform.position;
+            Vector2 newPos = Vector2.MoveTowards(currentPos, targetPoint, speed * Time.fixedDeltaTime);
+            transform.position = newPos;
 
-            foreach (PlayerController passenger in passengers)
+            // Tính vận tốc thực tế của bệ
+            currentVelocity = (newPos - currentPos) / Time.fixedDeltaTime;
+
+            // Cập nhật vận tốc cho mọi player đang đứng trên bệ
+            foreach (PlayerController p in passengers)
             {
-                if (passenger != null && !passenger.IsDead)
+                if (p != null)
                 {
-                    passenger.SetPlatformVelocity(currentVelocity);
+                    p.SetPlatformVelocity(currentVelocity);
                 }
             }
+
+            if (Vector2.Distance(newPos, targetPoint) < 0.02f)
+            {
+                targetPoint = (targetPoint == pointA) ? pointB : pointA;
+            }
+
+            previousPos = newPos;
         }
 
         private void OnCollisionEnter2D(Collision2D col)
         {
-            if (col.contactCount == 0 || col.GetContact(0).normal.y < 0.5f)
+            if (col.collider.CompareTag("Player") && col.collider.TryGetComponent(out PlayerController p))
             {
-                return;
-            }
-
-            PlayerController player = col.collider.GetComponentInParent<PlayerController>();
-            if (player != null)
-            {
-                passengers.Add(player);
-                player.SetPlatformVelocity(currentVelocity);
+                // Chỉ nhận khi player đứng trên mặt bệ (normal hướng lên)
+                if (col.contactCount > 0 && col.GetContact(0).normal.y < -0.5f)
+                {
+                    passengers.Add(p);
+                }
             }
         }
 
         private void OnCollisionExit2D(Collision2D col)
         {
-            PlayerController player = col.collider.GetComponentInParent<PlayerController>();
-            if (player != null && passengers.Remove(player))
+            if (col.collider.CompareTag("Player") && col.collider.TryGetComponent(out PlayerController p))
             {
-                player.SetPlatformVelocity(Vector2.zero);
+                if (passengers.Remove(p))
+                {
+                    p.SetPlatformVelocity(Vector2.zero);
+                }
             }
+        }
+
+        private void OnDisable()
+        {
+            foreach (PlayerController p in passengers)
+            {
+                if (p != null) p.SetPlatformVelocity(Vector2.zero);
+            }
+            passengers.Clear();
         }
 
         public void ResetState()
         {
-            foreach (PlayerController passenger in passengers)
-            {
-                if (passenger != null)
-                {
-                    passenger.SetPlatformVelocity(Vector2.zero);
-                }
-            }
-
-            passengers.Clear();
-            elapsed = 0f;
+            transform.position = initialScenePos;
+            targetPoint = pointB;
             currentVelocity = Vector2.zero;
-            transform.position = startPos;
+            foreach (PlayerController p in passengers)
+            {
+                if (p != null) p.SetPlatformVelocity(Vector2.zero);
+            }
+            passengers.Clear();
         }
     }
 }

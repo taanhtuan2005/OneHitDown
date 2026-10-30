@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using UnityEngine;
 using OneHitDown.Core;
+using OneHitDown.UI;
 
 namespace OneHitDown.Player
 {
@@ -66,6 +67,9 @@ namespace OneHitDown.Player
         [SerializeField] private bool isOnIce = false;
         [SerializeField] private bool canDoubleJump = true;
 
+        // Player1 dùng thêm phím mũi tên khi chơi 1 người (xem Awake).
+        private bool acceptArrowKeys;
+
         [Header("Tham chiếu Component")]
         [SerializeField] private Rigidbody2D rb;
         [SerializeField] private Collider2D col;
@@ -105,6 +109,10 @@ namespace OneHitDown.Player
 
         private void Awake()
         {
+            // Cache 1 lần: chơi 2 người thì phím mũi tên thuộc về Player2.
+            // Đọc PlayerPrefs mỗi frame sẽ tốn vô ích, nên chốt ngay khi spawn.
+            acceptArrowKeys = !GameSession.IsTwoPlayerMode;
+
             if (rb == null)
             {
                 rb = GetComponent<Rigidbody2D>();
@@ -303,6 +311,7 @@ namespace OneHitDown.Player
         /// <summary>
         /// Đọc phím điều khiển hỗ trợ cả New Input System và Legacy Input.
         /// Player1: A/D di chuyển ngang, Space hoặc W để nhảy.
+        ///          Khi chơi 1 người (không bật Co-op), nhận thêm phím mũi tên cho tiện.
         /// Player2: Arrow keys di chuyển ngang, UpArrow để nhảy.
         /// </summary>
         private void ReadInput()
@@ -312,6 +321,9 @@ namespace OneHitDown.Player
 
             if (playerType == PlayerType.Player1)
             {
+                // Chỉ nhận mũi tên khi không có Player2, tránh 2 nhân vật cùng nghe một phím.
+                bool soloArrowKeys = acceptArrowKeys;
+
 #if ENABLE_INPUT_SYSTEM
                 var keyboard = UnityEngine.InputSystem.Keyboard.current;
                 if (keyboard != null)
@@ -324,6 +336,24 @@ namespace OneHitDown.Player
                     if (keyboard.dKey.isPressed)
                     {
                         h += 1f;
+                    }
+
+                    if (soloArrowKeys)
+                    {
+                        if (keyboard.leftArrowKey.isPressed)
+                        {
+                            h -= 1f;
+                        }
+
+                        if (keyboard.rightArrowKey.isPressed)
+                        {
+                            h += 1f;
+                        }
+
+                        if (keyboard.upArrowKey.wasPressedThisFrame)
+                        {
+                            jumpPressed = true;
+                        }
                     }
 
                     if (keyboard.spaceKey.wasPressedThisFrame || keyboard.wKey.wasPressedThisFrame)
@@ -345,11 +375,29 @@ namespace OneHitDown.Player
                     {
                         h += 1f;
                     }
+
+                    if (soloArrowKeys)
+                    {
+                        if (Input.GetKey(KeyCode.LeftArrow))
+                        {
+                            h -= 1f;
+                        }
+
+                        if (Input.GetKey(KeyCode.RightArrow))
+                        {
+                            h += 1f;
+                        }
+                    }
                 }
 
                 if (!jumpPressed)
                 {
                     if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.W))
+                    {
+                        jumpPressed = true;
+                    }
+
+                    if (soloArrowKeys && Input.GetKeyDown(KeyCode.UpArrow))
                     {
                         jumpPressed = true;
                     }

@@ -2,60 +2,77 @@ using UnityEngine;
 
 namespace OneHitDown.Traps
 {
+    /// <summary>
+    /// Quả cầu gai con lắc: xoay quanh trục treo theo hàm Sin.
+    /// Cơ chế giữ nguyên theo bản mock đã kiểm chứng trên Level_03 (xoay root,
+    /// quả cầu và xích là con cố định ở -armLength), chỉ khác là xích được dựng
+    /// lúc Awake thay vì đặt sẵn trong Scene.
+    /// </summary>
     public class SpikedBallPendulum : TrapBase
     {
         [SerializeField] private Transform pivotPoint;
-        [SerializeField] private float armLength = 3.5f;
-        [SerializeField] private float maxAngle = 65f;
-        [SerializeField] private float swingSpeed = 2.5f;
-        [SerializeField] private float phaseOffset = 0f;
+        [SerializeField] private float armLength = 9.8f;
+        [SerializeField] private float maxAngle = 48f;
+        [SerializeField] private float swingSpeed = 2f;
         [SerializeField] private Transform ball;
         [SerializeField] private Sprite chainSprite;
-        private Transform[] links;
-        private float elapsedTime;
+
+        private SpriteRenderer[] links;
+        private float timer;
 
         protected override void Awake()
         {
             base.Awake();
             if (pivotPoint == null) pivotPoint = transform;
-            if (ball != null) { ball.gameObject.tag = "Hazard"; ball.gameObject.layer = 10; }
-            int count = chainSprite != null ? Mathf.CeilToInt(armLength / Mathf.Max(0.1f, chainSprite.bounds.size.y)) : 0;
-            links = new Transform[count];
+
+            if (ball != null)
+            {
+                ball.gameObject.tag = "Hazard";
+                ball.gameObject.layer = 10;
+                ball.localPosition = new Vector3(0f, -armLength, 0f);
+            }
+
+            BuildChain();
+            ResetPose();
+        }
+
+        private void BuildChain()
+        {
+            if (chainSprite == null) return;
+
+            float segment = Mathf.Max(0.1f, chainSprite.bounds.size.y);
+            int count = Mathf.CeilToInt(armLength / segment);
+            links = new SpriteRenderer[count];
+
             for (int i = 0; i < count; i++)
             {
-                var link = new GameObject("ChainLink").AddComponent<SpriteRenderer>();
-                link.sprite = chainSprite;
-                link.sortingOrder = -1;
-                link.transform.SetParent(transform, false);
-                links[i] = link.transform;
+                var go = new GameObject("ChainLink");
+                var sr = go.AddComponent<SpriteRenderer>();
+                sr.sprite = chainSprite;
+                sr.sortingOrder = -1;
+                go.transform.SetParent(transform, false);
+                go.transform.localPosition = new Vector3(0f, -armLength * (i + 0.5f) / count, 0f);
+                links[i] = sr;
             }
-            UpdatePendulum();
         }
 
         protected override void Update()
         {
-            elapsedTime += Time.deltaTime;
-            UpdatePendulum();
+            timer += Time.deltaTime;
+            float angle = Mathf.Sin(timer * swingSpeed) * maxAngle;
+            transform.localRotation = Quaternion.Euler(0f, 0f, angle);
         }
 
-        private void UpdatePendulum()
+        private void ResetPose()
         {
-            if (ball == null || pivotPoint == null) return;
-            float angle = Mathf.Sin((elapsedTime + phaseOffset) * swingSpeed) * maxAngle;
-            Vector3 direction = Quaternion.Euler(0f, 0f, angle) * Vector3.down;
-            ball.position = pivotPoint.position + direction * armLength;
-            for (int i = 0; i < links.Length; i++)
-            {
-                links[i].position = pivotPoint.position + direction * (armLength * (i + 0.5f) / links.Length);
-                links[i].rotation = Quaternion.Euler(0f, 0f, angle);
-            }
+            timer = 0f;
+            transform.localRotation = Quaternion.identity;
         }
 
         public override void ResetState()
         {
             base.ResetState();
-            elapsedTime = 0f;
-            UpdatePendulum();
+            ResetPose();
         }
     }
 }
