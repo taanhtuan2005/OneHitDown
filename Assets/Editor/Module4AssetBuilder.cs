@@ -230,6 +230,11 @@ namespace OneHitDown.EditorTools
         };
 
         /// <summary>
+        /// 3 quả thưởng KHÔNG tính vào cổng khoá [x/3] — theo SCHEMA §1.5.
+        /// </summary>
+        private static readonly string[] BonusFruitNames = { "Cherries", "Melon", "Strawberry" };
+
+        /// <summary>
         /// Tạo 8 Prefab Fruit_*: CircleCollider2D (radius 0.5, isTrigger), CollectibleItem (IResettable), tag Item.
         /// </summary>
         private static void BuildFruitPrefabs()
@@ -250,6 +255,8 @@ namespace OneHitDown.EditorTools
                     var item = go.AddComponent<CollectibleItem>();
                     var so = new SerializedObject(item);
                     so.FindProperty("fruitType").enumValueIndex = (int)fruitType;
+                    so.FindProperty("countsAsRelic").boolValue =
+                        Array.IndexOf(BonusFruitNames, fruitName) < 0;
                     so.ApplyModifiedPropertiesWithoutUndo();
 
                     go.tag = "Item";
