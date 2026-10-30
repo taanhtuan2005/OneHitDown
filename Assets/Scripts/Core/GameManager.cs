@@ -46,6 +46,7 @@ namespace OneHitDown.Core
         [SerializeField] private SoulTether soulTetherPrefab;
 
         [Header("Thông số màn chơi")]
+        [SerializeField] private int levelIndexOverride;       // 0 = lấy từ GameSession; 1..5 = ép chỉ số màn
         [SerializeField] private int totalRelicsRequired = 3;  // Chuẩn 3/3 Cổ Vật
         [SerializeField] private float respawnDelay = 0.18f;   // Hồi sinh tức thì < 0.2s
 
@@ -78,8 +79,18 @@ namespace OneHitDown.Core
         public bool IsGodMode => isGodMode;
         public bool IsResetting => isResetting;
 
-        /// <summary>Chỉ số màn hiện tại (1..5) lấy từ GameSession, kẹp về khoảng hợp lệ.</summary>
-        private static int LevelIndex => Mathf.Clamp(GameSession.CurrentLevelIndex, 1, LevelScenes.Length);
+        /// <summary>
+        /// Chỉ số màn hiện tại (1..5). Ưu tiên <c>levelIndexOverride</c> khi được gán trong Inspector
+        /// (dùng cho Scene mở trực tiếp mà không qua MainMenu), ngược lại lấy từ <see cref="GameSession"/>.
+        /// </summary>
+        public int LevelIndex
+        {
+            get
+            {
+                int index = levelIndexOverride > 0 ? levelIndexOverride : GameSession.CurrentLevelIndex;
+                return Mathf.Clamp(index, 1, LevelScenes.Length);
+            }
+        }
 
         #endregion
 
