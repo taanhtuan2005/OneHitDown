@@ -58,6 +58,9 @@ namespace OneHitDown.Player
         [SerializeField] private Vector2 groundCheckSize = new Vector2(0.55f, 0.12f);
         [SerializeField] private LayerMask groundLayer;
 
+        [Header("Âm thanh bước chân (Module 5 — AudioManager.PlayFootstep)")]
+        [SerializeField] private float footstepInterval = 0.32f; // Khoảng cách giữa 2 tiếng bước (giây)
+
         [Header("Trạng thái nội bộ")]
         [SerializeField] private bool isDead = false;
         [SerializeField] private bool isGrounded = true;
@@ -83,6 +86,7 @@ namespace OneHitDown.Player
         private Vector2 spawnPoint;
         private Coroutine respawnRoutine;
         private PlayerVFX playerVFX; // Cache trong Awake để phát VFX chết / hồi sinh
+        private float footstepTimer; // Đếm lùi tới tiếng bước chân kế tiếp (Module 5)
 
         #region Public Properties & Events
 
@@ -208,7 +212,43 @@ namespace OneHitDown.Player
 
             HandleJump();
             UpdateVisuals();
+            UpdateFootstepAudio();
             CheckManualRespawnInput();
+        }
+
+        /// <summary>
+        /// Phát tiếng bước chân theo địa hình của màn đang chơi (Module 5).
+        /// Chỉ kêu khi đang chạm đất và có vận tốc ngang; lấy chỉ số màn từ
+        /// <c>GameManager.Instance.LevelIndex</c> để AudioManager chọn đúng bộ
+        /// <c>footstep_grass / snow / concrete</c>.
+        /// </summary>
+        private void UpdateFootstepAudio()
+        {
+            if (AudioManager.Instance == null || rb == null)
+            {
+                return;
+            }
+
+            bool isRunning = isGrounded && Mathf.Abs(rb.linearVelocity.x) > 0.5f;
+
+            if (!isRunning)
+            {
+                // Đặt lại bộ đếm để tiếng bước đầu tiên kêu ngay khi bắt đầu chạy.
+                footstepTimer = 0f;
+                return;
+            }
+
+            footstepTimer -= Time.deltaTime;
+
+            if (footstepTimer > 0f)
+            {
+                return;
+            }
+
+            footstepTimer = footstepInterval;
+
+            int levelIndex = GameManager.Instance != null ? GameManager.Instance.LevelIndex : 1;
+            AudioManager.Instance.PlayFootstep(levelIndex);
         }
 
         private void FixedUpdate()

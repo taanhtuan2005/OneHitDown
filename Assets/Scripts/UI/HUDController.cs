@@ -100,7 +100,7 @@ namespace OneHitDown.UI
             int required = gameManager.TotalRelicsRequired;
             int deaths = gameManager.DeathCount;
             int elapsed = Mathf.FloorToInt(gameManager.ElapsedTime);
-            int levelIndex = Mathf.Max(1, GameSession.CurrentLevelIndex);
+            int levelIndex = gameManager.LevelIndex;
             int mode = GameSession.IsTwoPlayerMode ? 1 : 0;
 
             // 1. Bộ đếm Cổ Vật [x/3].
