@@ -37,6 +37,9 @@ namespace OneHitDown.EditorTools
         private const string StartSpritePath = StartDir + "/Start (Moving) (64x64).png";
         private const string EndSpritePath = EndDir + "/End (Idle).png";
         private const string PlatformSpritePath = PlatformDir + "/Grey On (32x8).png";
+        private const string ConfettiSpritePath = "Assets/Art/07_HieuUng/PA1_Other/Confetti (16x16).png";
+        private const string ParticleMaterialPath =
+            "Packages/com.unity.render-pipelines.universal/Runtime/Materials/ParticlesUnlit.mat";
 
         private const int DefaultLayer = 0;
         private const int GroundLayer = 8;
@@ -177,6 +180,33 @@ namespace OneHitDown.EditorTools
                 confettiGo.transform.SetParent(go.transform, false);
                 var confetti = confettiGo.AddComponent<ParticleSystem>();
                 confetti.Stop();
+
+                // Shape mặc định là Mesh rỗng nên mọi hạt đều sinh ra tại 1 điểm giữa cúp.
+                // Dùng ConeVolume xoay -90 quanh X: trục phun +Z thành +Y, hạt bắn lên từ miệng cúp.
+                var confettiShape = confetti.shape;
+                confettiShape.shapeType = ParticleSystemShapeType.ConeVolume;
+                confettiShape.angle = 25f;
+                confettiShape.position = new Vector3(0f, 0.9f, 0f);
+                confettiShape.rotation = new Vector3(-90f, 0f, 0f);
+                confettiShape.scale = new Vector3(1.6f, 0.2f, 0.1f);
+
+                // Hạt rơi xuống thay vì bay thẳng mãi.
+                var confettiMain = confetti.main;
+                confettiMain.gravityModifier = 0.35f;
+
+                // ParticleSystem mặc định không có material nên Unity render ra màu hồng
+                // (magenta). Phải gán material URP Particle Unlit + sprite Confetti.
+                var confettiRenderer = confettiGo.GetComponent<ParticleSystemRenderer>();
+                confettiRenderer.material = AssetDatabase.LoadAssetAtPath<Material>(ParticleMaterialPath);
+                var confettiSprite = LoadFirstSprite(ConfettiSpritePath);
+                if (confettiSprite != null)
+                {
+                    var textureSheet = confetti.textureSheetAnimation;
+                    textureSheet.enabled = true;
+                    textureSheet.numTilesX = 6;
+                    textureSheet.numTilesY = 1;
+                    textureSheet.SetSprite(0, confettiSprite);
+                }
 
                 var gate = go.AddComponent<ExitGate>();
                 var so = new SerializedObject(gate);
