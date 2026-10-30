@@ -70,7 +70,7 @@ MonoBehaviour:
       - rid: 5406026383943008267
       - rid: 5406026383943008268
       - rid: 5406026383943008269
-      - rid: 206351513560023040
+      - rid: 1170199880326709320
     m_RuntimeSettings:
       m_List: []
   m_AssetVersion: 11
@@ -96,7 +96,7 @@ MonoBehaviour:
   references:
     version: 2
     RefIds:
-    - rid: 206351513560023040
+    - rid: 1170199880326709320
       type: {class: ScreenSpaceReflectionPersistentResources, ns: UnityEngine.Rendering.Universal, asm: Unity.RenderPipelines.Universal.Runtime}
       data:
         m_Shader: {fileID: 4800000, guid: 7b3e6785f5f6b634794df3a85a2a35da, type: 3}

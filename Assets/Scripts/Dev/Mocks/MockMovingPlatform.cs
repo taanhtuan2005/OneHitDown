@@ -18,9 +18,11 @@ namespace OneHitDown.Dev.Mocks
     public class MockMovingPlatform : MonoBehaviour, IResettable
     {
         [Header("Tuần tra Di chuyển")]
-        [SerializeField] private Vector2 moveOffset = new Vector2(8f, 0f); // Khoảng dịch chuyển mục tiêu
+        [SerializeField] private Vector2 startOffset = Vector2.zero;       // Độ lệch điểm đầu A so với vị trí đặt bệ ban đầu trong Scene
+        [SerializeField] private Vector2 moveOffset = new Vector2(8f, 0f); // Khoảng dịch chuyển mục tiêu từ điểm A tới điểm B
         [SerializeField] private float speed = 3.0f;                       // Vận tốc bệ di chuyển
 
+        private Vector2 initialScenePos;
         private Vector2 pointA;
         private Vector2 pointB;
         private Vector2 targetPoint;
@@ -30,10 +32,11 @@ namespace OneHitDown.Dev.Mocks
 
         private void Awake()
         {
-            pointA = transform.position;
+            initialScenePos = transform.position;
+            pointA = initialScenePos + startOffset;
             pointB = pointA + moveOffset;
             targetPoint = pointB;
-            previousPos = pointA;
+            previousPos = initialScenePos;
         }
 
         private void FixedUpdate()
@@ -96,7 +99,7 @@ namespace OneHitDown.Dev.Mocks
 
         public void ResetState()
         {
-            transform.position = pointA;
+            transform.position = initialScenePos;
             targetPoint = pointB;
             currentVelocity = Vector2.zero;
             foreach (PlayerController p in passengers)
