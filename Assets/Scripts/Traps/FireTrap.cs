@@ -8,7 +8,7 @@ namespace OneHitDown.Traps
     {
         [SerializeField, Min(0.01f)] private float cooldownTime = 2f;
         [SerializeField, Min(0.01f)] private float warningTime = 0.35f;
-        [SerializeField, Min(0.01f)] private float activeTime = 2f;
+        [SerializeField, Min(0.01f)] private float activeTime = 1f;
         [SerializeField] private Collider2D flameHitbox;
         [SerializeField] private Sprite offSprite;
         [SerializeField] private Sprite[] warningFrames;

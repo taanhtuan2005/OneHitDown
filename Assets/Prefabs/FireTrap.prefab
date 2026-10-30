@@ -155,7 +155,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::OneHitDown.Traps.FireTrap
   cooldownTime: 2
   warningTime: 0.35
-  activeTime: 2
+  activeTime: 1
   flameHitbox: {fileID: 1517000989506444721}
   offSprite: {fileID: -5524587542107658741, guid: 50d8e5863dcf546469818721ab75632f, type: 3}
   warningFrames:
