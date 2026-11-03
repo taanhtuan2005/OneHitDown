@@ -83,6 +83,7 @@ namespace OneHitDown.Player
         private Vector2 platformVelocity;
         private Vector2 externalVelocity;
         private float appliedExternalX; // Ngoại lực ngang đã cộng vào rb ở bước vật lý trước
+        private float appliedExternalY; // Ngoại lực dọc đã cộng vào rb ở bước vật lý trước
         private Vector2 spawnPoint;
         private Coroutine respawnRoutine;
         private PlayerVFX playerVFX; // Cache trong Awake để phát VFX chết / hồi sinh
@@ -97,6 +98,7 @@ namespace OneHitDown.Player
         public bool CanDoubleJump => canDoubleJump;
         public float HorizontalInput => horizontalInput;
         public Rigidbody2D Rigidbody => rb != null ? rb : (rb = GetComponent<Rigidbody2D>());
+        public void SetAcceptArrowKeys(bool accept) => acceptArrowKeys = accept;
 
         public event Action<PlayerController> OnPlayerDied;
         public event Action OnSingleJumped;
@@ -112,6 +114,13 @@ namespace OneHitDown.Player
             // Cache 1 lần: chơi 2 người thì phím mũi tên thuộc về Player2.
             // Đọc PlayerPrefs mỗi frame sẽ tốn vô ích, nên chốt ngay khi spawn.
             acceptArrowKeys = !GameSession.IsTwoPlayerMode;
+
+            // Theo Schema §1.3: Layer 9 (Player) không tự đẩy nhau (tắt va chạm solid giữa 2 người chơi)
+            int playerLayer = LayerMask.NameToLayer("Player");
+            if (playerLayer >= 0)
+            {
+                Physics2D.IgnoreLayerCollision(playerLayer, playerLayer, true);
+            }
 
             if (rb == null)
             {
@@ -270,22 +279,34 @@ namespace OneHitDown.Player
 
             // Tính toán gia tốc phù hợp ngữ cảnh (Băng / Không trung / Mặt đất)
             float accel;
+            float vxRel = rb.linearVelocity.x - platformVelocity.x;
+            bool hasInput = Mathf.Abs(horizontalInput) > 0.01f;
+
             if (isOnIce)
             {
                 // Trên băng: nhả phím hoặc bẻ lái ngược chiều đang trượt -> ma sát thấp (iceFriction, trượt dài);
                 // bấm phím cùng chiều (hoặc đang đứng yên) -> tăng tốc bình thường để không bị ì.
-                float vxRel = rb.linearVelocity.x - platformVelocity.x;
-                bool hasInput = Mathf.Abs(horizontalInput) > 0.01f;
                 bool reversing = hasInput && Mathf.Abs(vxRel) > 0.5f && Mathf.Sign(vxRel) != Mathf.Sign(horizontalInput);
                 accel = hasInput && !reversing ? groundAcceleration : iceFriction;
             }
             else if (!isGrounded)
             {
-                accel = airAcceleration;
+                // Trên không: giữ airAcceleration (45f); nếu bẻ lái ngược chiều đang bay thì hỗ trợ phản hồi nhanh
+                bool reversingAir = hasInput && Mathf.Abs(vxRel) > 0.5f && Mathf.Sign(vxRel) != Mathf.Sign(horizontalInput);
+                accel = reversingAir ? airAcceleration * 1.5f : airAcceleration;
             }
             else
             {
-                accel = Mathf.Abs(horizontalInput) > 0.01f ? groundAcceleration : groundDeceleration;
+                // Trên mặt đất: khi bẻ lái ngược chiều đang chạy, dùng gia tốc bẻ lái tức thì (khử độ trượt lê thê)
+                bool reversing = hasInput && Mathf.Abs(vxRel) > 0.5f && Mathf.Sign(vxRel) != Mathf.Sign(horizontalInput);
+                if (reversing)
+                {
+                    accel = groundDeceleration + groundAcceleration; // Phanh gấp và bẻ lái tức thì (~145f)
+                }
+                else
+                {
+                    accel = hasInput ? groundAcceleration : groundDeceleration;
+                }
             }
 
             // Vận tốc ngang mục tiêu
@@ -301,10 +322,14 @@ namespace OneHitDown.Player
                 newVx = platformVelocity.x;
             }
 
-            // Áp dụng ngoại lực (từ quạt gió ngang hoặc dây kéo)
+            // Áp dụng ngoại lực ngang (từ quạt gió ngang hoặc dây kéo)
             newVx += externalVelocity.x;
             appliedExternalX = externalVelocity.x;
-            float newVy = rb.linearVelocity.y + externalVelocity.y;
+
+            // Áp dụng ngoại lực dọc (từ quạt gió đứng hoặc dây kéo) có bù trừ để tránh tích tụ vô hạn
+            float currentVy = rb.linearVelocity.y - appliedExternalY;
+            float newVy = currentVy + externalVelocity.y;
+            appliedExternalY = externalVelocity.y;
 
             // Giảm dần ngoại lực về 0 mượt mà theo thời gian (25 unit/giây)
             externalVelocity = Vector2.MoveTowards(externalVelocity, Vector2.zero, 25f * Time.fixedDeltaTime);
@@ -329,8 +354,8 @@ namespace OneHitDown.Player
 
             if (playerType == PlayerType.Player1)
             {
-                // Chỉ nhận mũi tên khi không có Player2, tránh 2 nhân vật cùng nghe một phím.
-                bool soloArrowKeys = acceptArrowKeys;
+                // Chỉ nhận mũi tên khi chơi 1 người (không bật Co-op 2P), tránh 2 nhân vật cùng nghe một phím.
+                bool soloArrowKeys = acceptArrowKeys && !GameSession.IsTwoPlayerMode;
 
 #if ENABLE_INPUT_SYSTEM
                 var keyboard = UnityEngine.InputSystem.Keyboard.current;
@@ -518,6 +543,7 @@ namespace OneHitDown.Player
                 isGrounded = true;
                 coyoteCounter = coyoteTime;
                 canDoubleJump = true;
+                appliedExternalY = 0f;
 
                 if (!wasGrounded)
                 {
@@ -584,6 +610,7 @@ namespace OneHitDown.Player
         {
             if (rb != null)
             {
+                appliedExternalY = 0f;
                 rb.linearVelocity = new Vector2(rb.linearVelocity.x, force);
             }
         }

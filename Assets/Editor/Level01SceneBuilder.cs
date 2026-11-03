@@ -288,15 +288,15 @@ namespace OneHitDown.EditorTools
                         dp1Col.offset = Vector2.zero;
                     }
 
-                    // Vùng chết Hazard nằm sâu trong lòng hố
+                    // Vùng chết Hazard nằm tận đáy vực sâu (rơi hẳn xuống đáy vực mới chết)
                     Transform dtz1 = dp1.transform.Find("DeathTriggerZone");
                     if (dtz1 != null)
                     {
                         BoxCollider2D dtzCol = dtz1.GetComponent<BoxCollider2D>();
                         if (dtzCol != null)
                         {
-                            dtzCol.size = new Vector2(3f, 4f);
-                            dtzCol.offset = new Vector2(0f, -2.5f);
+                            dtzCol.size = new Vector2(3f, 3f);
+                            dtzCol.offset = new Vector2(0f, -6.5f);
                         }
                     }
 
@@ -445,15 +445,15 @@ namespace OneHitDown.EditorTools
                             rdpCol.offset = Vector2.zero;
                         }
 
-                        // Vùng chết Hazard nằm sâu trong lòng hố vực sâu
+                        // Vùng chết Hazard nằm tận đáy vực sâu (rơi hẳn xuống đáy vực mới chết)
                         Transform dtz = rdp.transform.Find("DeathTriggerZone");
                         if (dtz != null)
                         {
                             BoxCollider2D dtzCol = dtz.GetComponent<BoxCollider2D>();
                             if (dtzCol != null)
                             {
-                                dtzCol.size = new Vector2(width, 6f);
-                                dtzCol.offset = new Vector2(0f, -3.5f);
+                                dtzCol.size = new Vector2(width, 3f);
+                                dtzCol.offset = new Vector2(0f, -8.5f);
                             }
                         }
 
@@ -497,6 +497,24 @@ namespace OneHitDown.EditorTools
                 spawnOverlayDeathPit(76f, 79f, "DeathPit_Rhythm_2"); // Hố 2: 76 .. 79
                 spawnOverlayDeathPit(81f, 84f, "DeathPit_Rhythm_3"); // Hố 3: 81 .. 84
                 spawnOverlayDeathPit(86f, 89f, "DeathPit_Rhythm_4"); // Hố 4: 86 .. 89
+
+                // =========================================================================
+                // VÙNG VỰC SÂU DƯỚI ĐÁY MÀN HÌNH (KILLZONE / MẶT ĐẤT ẨN GÂY CHẾT)
+                // Đặt tại mức y = -5.5 (ngang bằng đáy bẫy sụt thứ nhất DeathPit_Hidden_1)
+                // Khi người chơi nhảy hụt ở Bệ rơi / Cột đá x: 44..100 rơi xuống vực sẽ chết ngay!
+                // =========================================================================
+                GameObject abyssKillZone = new GameObject("KillZone_Abyss");
+                abyssKillZone.transform.SetParent(trapGroup.transform);
+                abyssKillZone.transform.position = new Vector3(72f, -7.5f, 0f);
+                abyssKillZone.tag = "Hazard";
+                abyssKillZone.layer = LayerMask.NameToLayer("Traps") >= 0 ? LayerMask.NameToLayer("Traps") : 10;
+
+                BoxCollider2D abyssCol = abyssKillZone.AddComponent<BoxCollider2D>();
+                abyssCol.isTrigger = true;
+                abyssCol.size = new Vector2(56f, 4f); // Phủ từ x = 44 đến x = 100, đỉnh chạm y = -5.5
+                abyssCol.offset = Vector2.zero;
+
+                abyssKillZone.AddComponent<KillZone>();
 
 
                 // 6. Header: 04. ITEMS & OBJECTIVES

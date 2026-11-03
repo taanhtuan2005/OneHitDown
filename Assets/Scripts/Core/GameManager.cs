@@ -101,6 +101,13 @@ namespace OneHitDown.Core
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
             Instance = this;
 
+            // Theo Schema §1.3: Layer 9 (Player) không tự đẩy nhau (tắt va chạm solid giữa Player1 và Player2)
+            int playerLayer = LayerMask.NameToLayer("Player");
+            if (playerLayer >= 0)
+            {
+                Physics2D.IgnoreLayerCollision(playerLayer, playerLayer, true);
+            }
+
             // Gom Quả / Bẫy sập / Hố Tử Thần / Cổng đích có sẵn trong Scene.
             resettables = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None).OfType<IResettable>().ToArray();
 
@@ -139,6 +146,10 @@ namespace OneHitDown.Core
             }
 
             Spawn(player1Prefab, (Vector2)startPoint.P1SpawnPoint.position, "Player1", GameSession.P1Skin);
+            if (activePlayers.Count > 0 && activePlayers[0] != null)
+            {
+                activePlayers[0].SetAcceptArrowKeys(!GameSession.IsTwoPlayerMode);
+            }
 
             if (GameSession.IsTwoPlayerMode)
             {

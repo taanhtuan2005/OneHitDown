@@ -284,7 +284,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: SETTINGS
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: c305da7bc787345498c6f720a99f5524, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 89587388}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -402,7 +402,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: 
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: c305da7bc787345498c6f720a99f5524, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 89587388}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -1011,7 +1011,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: LEVELS
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: c305da7bc787345498c6f720a99f5524, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 89587388}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -1581,7 +1581,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: VIRTUAL GUY
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: c305da7bc787345498c6f720a99f5524, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 89587388}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -2233,7 +2233,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: "CH\u1ECCN CH\u1EBE \u0110\u1ED8: <color=#00FFFF>[1 PLAYER]</color> / 2 PLAYERS - CO-OP TETHER"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: c305da7bc787345498c6f720a99f5524, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 89587388}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -2752,7 +2752,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: "QUAY L\u1EA0I"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: c305da7bc787345498c6f720a99f5524, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 89587388}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -2889,7 +2889,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: ONE HIT DOWN
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: c305da7bc787345498c6f720a99f5524, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 89587388}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -3344,7 +3344,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: AUDIO
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: c305da7bc787345498c6f720a99f5524, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 89587388}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -3706,7 +3706,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: "CH\u1ECCN M\xC0N CH\u01A0I"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: c305da7bc787345498c6f720a99f5524, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 89587388}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -3973,7 +3973,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: 'P1: NINJA FROG'
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: c305da7bc787345498c6f720a99f5524, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 89587388}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -4253,7 +4253,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: PLAY
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: c305da7bc787345498c6f720a99f5524, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 89587388}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -4938,7 +4938,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: 'P2: PINK MAN'
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: c305da7bc787345498c6f720a99f5524, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 89587388}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -5075,7 +5075,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: 
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: c305da7bc787345498c6f720a99f5524, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 89587388}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -5483,7 +5483,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: MASK DUDE
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: c305da7bc787345498c6f720a99f5524, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 89587388}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
