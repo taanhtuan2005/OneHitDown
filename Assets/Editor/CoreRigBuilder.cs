@@ -54,7 +54,8 @@ namespace OneHitDown.EditorTools
         private const string Player2PrefabPath = "Assets/Prefabs/Player2.prefab";
         private const string SoulTetherPrefabPath = "Assets/Prefabs/SoulTether.prefab";
 
-        private const string PineappleTexturePath = "Assets/Art/04_VatPham_dungOrkhong/PA1_Items/Fruits/Pineapple.png";
+        // Icon Cổ Vật mặc định của HUD — Màn 3 dùng Kiwi (khớp Assets/Prefabs/Fruit_Kiwi.prefab).
+        private const string RelicIconTexturePath = "Assets/Art/04_VatPham_dungOrkhong/PA1_Items/Fruits/Kiwi.png";
         private const string TransitionTexturePath = "Assets/Art/07_HieuUng/PA1_Other/Transition.png";
         private const string FontPath = "Assets/Art/08_Font/VT323/VT323-Regular.ttf";
         private const string RestartButtonTexturePath = "Assets/Art/05_GiaoDien/PA1_Menu/Buttons/Restart.png";
@@ -74,7 +75,7 @@ namespace OneHitDown.EditorTools
 
         #region Sprite & Font cache
 
-        private static Sprite pineappleSprite;
+        private static Sprite relicIconSprite;
         private static Sprite transitionSprite;
         private static Sprite restartIconSprite;
         private static Sprite playIconSprite;
@@ -320,7 +321,7 @@ namespace OneHitDown.EditorTools
             GameObject hudGo = CreateUiRoot(HudRootName, canvasGo.transform);
             HUDController hud = hudGo.AddComponent<HUDController>();
 
-            Image relicIcon = CreateUiImage("RelicIcon", hudGo.transform, pineappleSprite, true);
+            Image relicIcon = CreateUiImage("RelicIcon", hudGo.transform, relicIconSprite, true);
             PlaceTopLeft((RectTransform)relicIcon.transform, 40f, 40f, 72f, 72f);
 
             Text relicCounter = CreateUiText("RelicCounter", hudGo.transform, 48, TextAnchor.MiddleLeft, new Color(1f, 0.95f, 0.8f, 1f), "[0/3]");
@@ -803,7 +804,7 @@ namespace OneHitDown.EditorTools
 
         private static void LoadSharedAssets()
         {
-            pineappleSprite = LoadFirstSprite(PineappleTexturePath, "Pineapple_0");
+            relicIconSprite = LoadFirstSprite(RelicIconTexturePath, "Kiwi_0");
             transitionSprite = LoadFirstSprite(TransitionTexturePath, "Transition_0");
             restartIconSprite = LoadFirstSprite(RestartButtonTexturePath, "Restart_0");
             playIconSprite = LoadFirstSprite(PlayButtonTexturePath, "Play_0");

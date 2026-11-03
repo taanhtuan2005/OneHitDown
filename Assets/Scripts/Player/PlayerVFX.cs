@@ -33,6 +33,11 @@ namespace OneHitDown.Player
             if (groundShadow != null)
             {
                 shadowRenderer = groundShadow.GetComponent<SpriteRenderer>();
+                if (shadowRenderer != null)
+                {
+                    shadowRenderer.enabled = false;
+                }
+                groundShadow.gameObject.SetActive(false);
             }
 
             // Mặc định layer Ground nếu chưa gán trong Inspector (Layer 8)
@@ -71,7 +76,7 @@ namespace OneHitDown.Player
         /// </summary>
         public void UpdateShadowRaycast()
         {
-            if (groundShadow == null || shadowRenderer == null)
+            if (groundShadow == null || shadowRenderer == null || !groundShadow.gameObject.activeSelf)
             {
                 return;
             }
