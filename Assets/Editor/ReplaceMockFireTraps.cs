@@ -24,7 +24,8 @@ namespace OneHitDown.EditorTools
         private const string ScenePath = "Assets/Scenes/Level_03.unity";
         private const string FireTrapPrefabPath = "Assets/Prefabs/FireTrap.prefab";
 
-        [MenuItem("Tools/One Hit Down/Replace Mock FireTraps in Level 3")]
+        // Đã hoàn tất thay thế toàn bộ Mock trong Level_03 — ẩn khỏi menu để tránh bấm nhầm.
+        // [MenuItem("Tools/One Hit Down/Replace Mock FireTraps in Level 3")]
         public static void Run()
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(FireTrapPrefabPath);

@@ -25,7 +25,8 @@ namespace OneHitDown.EditorTools
         private const string KiwiPrefabPath = "Assets/Prefabs/Fruit_Kiwi.prefab";
         private const string StrawberryPrefabPath = "Assets/Prefabs/Fruit_Strawberry.prefab";
 
-        [MenuItem("Tools/One Hit Down/Replace Mock Collectibles in Level 3")]
+        // Đã hoàn tất thay thế toàn bộ Mock trong Level_03 — ẩn khỏi menu để tránh bấm nhầm.
+        // [MenuItem("Tools/One Hit Down/Replace Mock Collectibles in Level 3")]
         public static void Run()
         {
             var kiwi = AssetDatabase.LoadAssetAtPath<GameObject>(KiwiPrefabPath);
