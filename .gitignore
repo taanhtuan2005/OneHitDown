@@ -38,3 +38,6 @@ sysinfo.txt
 *.app
 .DS_Store
 Thumbs.db
+
+Backups_Local/
+

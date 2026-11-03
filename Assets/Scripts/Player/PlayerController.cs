@@ -138,6 +138,7 @@ namespace OneHitDown.Player
                 rb.gravityScale = defaultGravityScale;
                 rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
                 rb.freezeRotation = true;
+                rb.interpolation = RigidbodyInterpolation2D.Interpolate; // Nội suy chuyển động mượt mà, triệt tiêu giật khựng
             }
 
             // Mặc định layer Ground nếu chưa gán trong Inspector (Layer 8)
@@ -159,6 +160,13 @@ namespace OneHitDown.Player
                     bounciness = 0f
                 };
                 col.sharedMaterial = slipperyMat;
+            }
+
+            // Bo tròn nhẹ 4 góc chân Collider để không bao giờ bị vấp mép gạch (Tile Snagging)
+            if (col is BoxCollider2D box && box.edgeRadius == 0f)
+            {
+                box.edgeRadius = 0.05f;
+                box.size = new Vector2(Mathf.Max(0.1f, box.size.x - 0.1f), Mathf.Max(0.1f, box.size.y - 0.1f));
             }
 
             playerVFX = GetComponent<PlayerVFX>();
