@@ -7,7 +7,7 @@
 // 1. CHỈ DÙNG ASSET ĐƯỢC PHÂN CHO MÀN 3 TẠI 'Assets/Art/' (PA1_Terrain, PA1_Background/Gray, Sand Mud Ice, Fire, Spikes, Spiked Ball, Fruits, Boxes).
 // 2. TUYỆT ĐỐI KHÔNG TẠO SPRITE THỦ CÔNG / PROCEDURAL (ZERO FAKE ASSETS).
 // 3. TOÀN BỘ 6 CƠ QUAN MODULE 3 ĐƯỢC LẤY TRỰC TIẾP TỪ 'Assets/Prefabs/Traps/'.
-// 4. MOCK SCRIPTS ĐẶT RIÊNG TẠI 'Assets/Scripts/Dev/Mocks/' THEO 'Docs/LEVEL_03_MOCK_NOTICE.md'.
+// 4. PREFAB CHÍNH THỨC: FireTrap, SpikedBall, MovingPlatform, Fruit_Kiwi, Fruit_Strawberry, ExitGate, LevelStart, CoreRig.
 // 5. ĐỒNG BỘ 100% VỚI BỘ 11 ẢNH CẢI TIẾN TRONG 'Anh_Minh_Hoa_Bao_Cao/màn 3/':
 //    - Vòm Trần Hầm Mộ liền mạch (Y = 16..20) kết hợp Trụ Thép (Steel Pillars) và Dầm Thép (Steel Beams).
 //    - Khối Băng 9-Slice (48x48, border 16px) giữ nguyên viền đen sắc nét và mặt tuyết phản quang.
@@ -21,10 +21,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using OneHitDown.Dev;
-using OneHitDown.Dev.Mocks;
+using OneHitDown.Core;
+using OneHitDown.Level;
 using OneHitDown.Player;
 using OneHitDown.Traps;
+using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEditor.U2D.Sprites;
@@ -38,26 +39,16 @@ namespace OneHitDown.EditorTools
         private const string SceneDir = "Assets/Scenes";
         private const string ScenePath = "Assets/Scenes/Level_03.unity";
         private const string PrefabsTrapsDir = "Assets/Prefabs/Traps";
+        private const string PrefabsDir = "Assets/Prefabs";
 
         // Asset paths chính thức của dự án (Màn 3)
         private const string TerrainTexturePath = "Assets/Art/02_MoiTruong/PA1_Terrain/Terrain (16x16).png";
         private const string IceTexturePath = "Assets/Art/03_Bay/PA1_Traps/Sand Mud Ice/Sand Mud Ice (16x6).png";
         private const string BackgroundTexturePath = "Assets/Art/02_MoiTruong/PA1_Background/Gray.png";
-        private const string PlayerControllerAssetPath = "Assets/Art/Animations/NinjaFrog/NinjaFrog_Controller.controller";
-        private const string PlayerSpritePath = "Assets/Art/01_NhanVat/PA1_MainCharacters/Ninja Frog/Idle (32x32).png";
         private const string SpikesTexturePath = "Assets/Art/03_Bay/PA1_Traps/Spikes/Idle.png";
-        private const string FireOffPath = "Assets/Art/03_Bay/PA1_Traps/Fire/Off.png";
-        private const string FireHitPath = "Assets/Art/03_Bay/PA1_Traps/Fire/Hit (16x32).png";
-        private const string FireOnPath = "Assets/Art/03_Bay/PA1_Traps/Fire/On (16x32).png";
-        private const string SpikedBallPath = "Assets/Art/03_Bay/PA1_Traps/Spiked Ball/Spiked Ball.png";
-        private const string SpikedChainPath = "Assets/Art/03_Bay/PA1_Traps/Spiked Ball/Chain.png";
-        private const string MovingPlatformGreyPath = "Assets/Art/03_Bay/PA1_Traps/Platforms/Grey On (32x8).png";
-        private const string MovingPlatformBrownPath = "Assets/Art/03_Bay/PA1_Traps/Platforms/Brown On (32x8).png";
         private const string PlatformChainPath = "Assets/Art/03_Bay/PA1_Traps/Platforms/Chain.png";
         private const string KiwiPath = "Assets/Art/04_VatPham_dungOrkhong/PA1_Items/Fruits/Kiwi.png";
         private const string StrawberryPath = "Assets/Art/04_VatPham_dungOrkhong/PA1_Items/Fruits/Strawberry.png";
-        private const string StartSignPath = "Assets/Art/04_VatPham_dungOrkhong/PA1_Items/Checkpoints/Start/Start (Moving) (64x64).png";
-        private const string TrophyPath = "Assets/Art/04_VatPham_dungOrkhong/PA1_Items/Checkpoints/End/End (Idle).png";
         private const string Box1Path = "Assets/Art/04_VatPham_dungOrkhong/PA1_Items/Boxes/Box1/Idle.png";
         private const string Box3Path = "Assets/Art/04_VatPham_dungOrkhong/PA1_Items/Boxes/Box3/Idle.png";
 
@@ -127,6 +118,26 @@ namespace OneHitDown.EditorTools
         /// </summary>
         public static void BuildLevel03Scene(bool openScene = true)
         {
+            // 0. An toàn: xác nhận trước khi xóa/dựng lại + sao lưu Scene hiện có.
+            if (!Level03BuildSafety.ConfirmDestructiveRebuild())
+            {
+                Debug.Log("[Level03SceneBuilder] Người dùng đã hủy thao tác dựng lại Scene.");
+                return;
+            }
+
+            if (!Level03BuildSafety.BackupBeforeBuild(ScenePath))
+            {
+                Debug.LogError("[Level03SceneBuilder] Sao lưu Scene thất bại. Hủy dựng để bảo toàn dữ liệu.");
+                return;
+            }
+
+            // 0b. Chặn dựng khi thiếu prefab chính thức.
+            List<string> missingPrefabs = FindMissingPrefabs();
+            if (!Level03BuildSafety.ReportMissingPrefabs(missingPrefabs))
+            {
+                return;
+            }
+
             try
             {
                 EditorUtility.DisplayProgressBar("Level 03 - Build Scene", "Khởi tạo & cắt Sprite 9-Slice chuẩn...", 0.05f);
@@ -149,7 +160,6 @@ namespace OneHitDown.EditorTools
                 }
 
                 Sprite bgSprite = LoadFirstSprite(BackgroundTexturePath, "Gray_0");
-                Sprite playerSprite = LoadFirstSprite(PlayerSpritePath, "Idle (32x32)_0");
 
                 // 2. Tạo Scene sạch trong Editor
                 Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
@@ -158,9 +168,8 @@ namespace OneHitDown.EditorTools
                 GameObject envGroup = new GameObject("--- 01. ENVIRONMENT & BACKGROUND ---");
                 GameObject terrainGroup = new GameObject("--- 02. TERRAIN & CATACOMB ARCHITECTURE ---");
                 GameObject module3Group = new GameObject("--- 03. MODULE 3 PREFABS (CHINH THUC - TUYEN) ---");
-                GameObject mockGroup2 = new GameObject("--- 04. [MOCK FOR TEST - CHO NGUOI 2 HOAN THIEN: LUA, GAI, CAU GAI] ---");
-                GameObject mockGroup4 = new GameObject("--- 05. [MOCK FOR TEST - CHO NGUOI 4 HOAN THIEN: BE NANG, KIWI, DAU TAY, DICH] ---");
-                GameObject playerGroup = new GameObject("--- 06. CHARACTERS ---");
+                GameObject trapsGroup = new GameObject("--- 04. TRAPS & HAZARDS ---");
+                GameObject relicsGroup = new GameObject("--- 05. RELICS & GOAL ---");
                 GameObject labelsGroup = new GameObject("--- 07. HUD LABELS & SIGNS ---");
 
                 // 4. Background xám Gray.png lặp toàn màn hình
@@ -169,16 +178,10 @@ namespace OneHitDown.EditorTools
 
                 // 5. Camera 2D theo dõi mượt mà
                 EditorUtility.DisplayProgressBar("Level 03 - Build Scene", "Thiết lập Camera 2D...", 0.25f);
-                GameObject cameraGo = CreateCamera2D(envGroup.transform);
+                CreateCamera2D(envGroup.transform);
 
-                // 6. Player Ninja Frog đầy đủ Animator nhún thở
-                EditorUtility.DisplayProgressBar("Level 03 - Build Scene", "Thiết lập Player...", 0.35f);
-                GameObject playerGo = CreateTestPlayer(playerGroup.transform, playerSprite);
-                DevCameraFollow camFollow = cameraGo.GetComponent<DevCameraFollow>();
-                if (camFollow != null && playerGo != null)
-                {
-                    camFollow.SetTarget(playerGo.transform);
-                }
+                // 6. Player KHÔNG đặt sẵn trong Scene: CoreRig/GameManager tự spawn Player1/Player2 từ prefab.
+                // Camera để target1/target2 null — GameManager gán qua CameraController.SetTargets() khi spawn.
 
                 // 7. Địa hình đá 9-Slice, Vòm Trần Hầm Mộ, Trụ Thép và Họa tiết gạch lẻ
                 EditorUtility.DisplayProgressBar("Level 03 - Build Scene", "Dựng Vòm Trần Hầm Mộ & Địa hình đá...", 0.50f);
@@ -192,22 +195,34 @@ namespace OneHitDown.EditorTools
                 EditorUtility.DisplayProgressBar("Level 03 - Build Scene", "Bố trí 5 Cơ quan Module 3...", 0.75f);
                 BuildModule3Gadgets(module3Group.transform);
 
-                // 10. Mock-Safe Người 2 (Vạc Lửa chu kỳ 2s-1s, Chông Gai, Cầu Gai Con Lắc)
+                // 10. Traps & Hazards (Người 2) (Vạc Lửa chu kỳ 2s-1s, Chông Gai, Cầu Gai Con Lắc)
                 EditorUtility.DisplayProgressBar("Level 03 - Build Scene", "Bố trí Vạc Lửa, Gai, Cầu Gai...", 0.85f);
-                BuildModule2Mocks(mockGroup2.transform);
+                BuildTrapsAndHazards(trapsGroup.transform);
 
-                // 11. Mock-Safe Người 4 (Bệ Nâng X/Y có ray xích, Kiwi [3/3], Dâu Tây, Cúp Đích)
+                // 11. Relics & Goal (Người 4) (Bệ Nâng X/Y có ray xích, Kiwi [3/3], Dâu Tây, Cúp Đích)
                 EditorUtility.DisplayProgressBar("Level 03 - Build Scene", "Bố trí Bệ Nâng, Kiwi, Dâu Tây, Cúp Đích...", 0.92f);
-                BuildModule4Mocks(mockGroup4.transform);
+                BuildRelicsAndGoal(relicsGroup.transform);
 
                 // 12. Bảng hiệu hướng dẫn 5 chặng
                 CreateHudLabels(labelsGroup.transform);
 
-                // 13. Lưu và mở Scene
+                // 13. Hạ tầng Core: LevelStart, KillZone, ExitGate, CoreRig
+                EditorUtility.DisplayProgressBar("Level 03 - Build Scene", "Tích hợp hạ tầng Core (Start, KillZone, ExitGate, CoreRig)...", 0.95f);
+                BuildCoreInfrastructure();
+
+                // 14. Lưu và mở Scene
                 EditorUtility.DisplayProgressBar("Level 03 - Build Scene", "Lưu Scene Level_03.unity...", 0.98f);
                 bool saved = EditorSceneManager.SaveScene(scene, ScenePath);
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh();
+
+                // Scene chuẩn còn lưu một số override có giá trị TRÙNG mặc định của prefab
+                // (ví dụ m_FlipY = 0 của P4_DeathPit_Block2). Unity chỉ ghi override khi giá trị
+                // thực sự khác, nên phải lệch -> lưu -> trả về -> lưu lần nữa để tái lập đúng scene chuẩn.
+                if (saved)
+                {
+                    saved = ReapplyNoOpOverrides(scene, ScenePath);
+                }
 
                 if (saved)
                 {
@@ -223,7 +238,7 @@ namespace OneHitDown.EditorTools
                         "★ Khối Băng IceRoad.prefab cắt chuẩn 9-Slice (48x48) có viền đen sắc nét\n" +
                         "★ Khối Đá 9-Slice điểm xuyết cụm gạch lẻ (Inner Bricks) từ Terrain (16x16).png\n" +
                         "★ Hốc Vạc Lửa âm tường + Ray mắt xích cho Bệ Nâng & Bệ Treo One-Way\n" +
-                        "★ Đầy đủ 6 Prefabs Module 3 chính thức & Mock-Safe theo đúng quy chuẩn!",
+                        "★ Đầy đủ 6 Prefabs Module 3 chính thức & hạ tầng Core đầy đủ!",
                         "Tuyệt vời!"
                     );
                 }
@@ -240,6 +255,77 @@ namespace OneHitDown.EditorTools
         }
 
         #region Setup Core (Camera, Background, Player)
+
+        /// <summary>
+        /// Hạ tầng Core ở root: LevelStart, KillZone, ExitGate, CoreRig.
+        /// CoreRig là instance prefab (đã có GameManager/CameraController/AudioManager/HUD bên trong).
+        /// </summary>
+        private static void BuildCoreInfrastructure()
+        {
+            // LevelStart: điểm xuất phát Màn 3 (đã có p1SpawnPoint/p2SpawnPoint cấu hình sẵn).
+            GameObject startGo = InstantiatePrefab("LevelStart", null);
+            if (startGo != null)
+            {
+                startGo.name = "LevelStart";
+                startGo.transform.position = new Vector3(2.2f, 4.0f, 0f);
+            }
+
+            // KillZone: vùng chết trải hết chiều ngang màn.
+            GameObject killZoneGo = new GameObject("KillZone");
+            killZoneGo.tag = "Hazard";
+            int trapsLayer = LayerMask.NameToLayer("Traps");
+            if (trapsLayer >= 0) killZoneGo.layer = trapsLayer;
+            killZoneGo.transform.position = new Vector3(100f, -4f, 0f);
+
+            BoxCollider2D killCol = killZoneGo.AddComponent<BoxCollider2D>();
+            killCol.size = new Vector2(250f, 4f);
+            killCol.isTrigger = true;
+            killZoneGo.AddComponent<KillZone>();
+
+            // ExitGate được tạo trong BuildRelicsAndGoal (nhóm 05).
+
+            // CoreRig: GameManager + CameraController + AudioManager + HUD.
+            GameObject coreRigGo = InstantiatePrefab("CoreRig", null);
+            if (coreRigGo == null) return;
+
+            coreRigGo.name = "CoreRig";
+            coreRigGo.transform.position = Vector3.zero;
+
+            GameManager gm = coreRigGo.GetComponentInChildren<GameManager>(true);
+            if (gm == null)
+            {
+                Debug.LogWarning("[Level03SceneBuilder] CoreRig không chứa GameManager — bỏ qua gán tham chiếu hạ tầng.");
+                return;
+            }
+
+            SerializedObject gmSo = new SerializedObject(gm);
+            gmSo.FindProperty("levelIndexOverride").intValue = 3;
+
+            if (startGo != null)
+            {
+                LevelStartPoint startPoint = startGo.GetComponentInChildren<LevelStartPoint>(true);
+                if (startPoint != null)
+                {
+                    gmSo.FindProperty("startPoint").objectReferenceValue = startPoint;
+                }
+            }
+
+            // ExitGate đã được tạo trong BuildRelicsAndGoal — chỉ tìm lại để gán cho GameManager.
+            ExitGate exitGate = UnityEngine.Object.FindAnyObjectByType<ExitGate>(FindObjectsInactive.Include);
+            if (exitGate != null)
+            {
+                gmSo.FindProperty("exitGate").objectReferenceValue = exitGate;
+            }
+
+            CameraController cameraController = UnityEngine.Object.FindAnyObjectByType<CameraController>(FindObjectsInactive.Include);
+            if (cameraController != null)
+            {
+                gmSo.FindProperty("mainCamera").objectReferenceValue = cameraController;
+            }
+
+            gmSo.ApplyModifiedPropertiesWithoutUndo();
+            PrefabUtility.RecordPrefabInstancePropertyModifications(gm);
+        }
 
         private static GameObject CreateCamera2D(Transform parent)
         {
@@ -258,14 +344,14 @@ namespace OneHitDown.EditorTools
 
             camGo.AddComponent<AudioListener>();
 
-            DevCameraFollow follow = camGo.AddComponent<DevCameraFollow>();
+            CameraController follow = camGo.AddComponent<CameraController>();
             SerializedObject so = new SerializedObject(follow);
+            so.FindProperty("targetOrthoSize").floatValue = 6.5f;
             so.FindProperty("offset").vector3Value = new Vector3(0f, 2.2f, -10f);
             so.FindProperty("smoothSpeed").floatValue = 6f;
-            so.FindProperty("minBounds").vector2Value = new Vector2(10f, 6.5f);
-            so.FindProperty("maxBounds").vector2Value = new Vector2(190f, 13.5f);
+            so.FindProperty("minY").floatValue = 6.5f;
+            so.FindProperty("maxY").floatValue = 13.5f;
             so.ApplyModifiedProperties();
-
             return camGo;
         }
 
@@ -283,51 +369,6 @@ namespace OneHitDown.EditorTools
             sr.sortingOrder = -50;
         }
 
-        private static GameObject CreateTestPlayer(Transform parent, Sprite playerSprite)
-        {
-            GameObject playerGo = new GameObject("Player_NinjaFrog");
-            playerGo.transform.SetParent(parent);
-            playerGo.transform.position = new Vector3(4.5f, 4.1f, 0f);
-            playerGo.tag = "Player";
-
-            int playerLayer = LayerMask.NameToLayer("Player");
-            if (playerLayer >= 0) playerGo.layer = playerLayer;
-
-            SpriteRenderer sr = playerGo.AddComponent<SpriteRenderer>();
-            sr.sprite = playerSprite;
-            sr.sortingOrder = 10;
-
-            BoxCollider2D col = playerGo.AddComponent<BoxCollider2D>();
-            col.size = new Vector2(0.8f, 1.3f);
-            col.offset = new Vector2(0f, 0.65f);
-
-            Animator animator = playerGo.AddComponent<Animator>();
-            animator.runtimeAnimatorController = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(PlayerControllerAssetPath);
-
-            Rigidbody2D rb = playerGo.AddComponent<Rigidbody2D>();
-            rb.bodyType = RigidbodyType2D.Dynamic;
-            rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
-            rb.freezeRotation = true;
-            rb.gravityScale = 3.5f;
-
-            PlayerController pc = playerGo.AddComponent<PlayerController>();
-            SerializedObject so = new SerializedObject(pc);
-            so.FindProperty("moveSpeed").floatValue = 8f;
-            so.FindProperty("groundAcceleration").floatValue = 65f;
-            so.FindProperty("groundDeceleration").floatValue = 80f;
-            so.FindProperty("airAcceleration").floatValue = 45f;
-            so.FindProperty("iceFriction").floatValue = 4f;
-            so.FindProperty("jumpForce").floatValue = 15.5f;
-            so.FindProperty("doubleJumpForce").floatValue = 13.5f;
-            so.FindProperty("defaultGravityScale").floatValue = 3.5f;
-            so.FindProperty("coyoteTime").floatValue = 0.1f;
-            so.FindProperty("jumpBufferTime").floatValue = 0.1f;
-            so.FindProperty("groundCheckSize").vector2Value = new Vector2(0.55f, 0.12f);
-            so.FindProperty("groundLayer").intValue = 1 << LayerMask.NameToLayer("Ground");
-            so.ApplyModifiedProperties();
-
-            return playerGo;
-        }
 
         #endregion
 
@@ -794,19 +835,29 @@ namespace OneHitDown.EditorTools
             CreateHorizontalFan(parent, "P4_FanTrap_Horizontal_Lower", new Vector3(120.3f, 9.5f, 0f));
             CreateHorizontalFan(parent, "P4_FanTrap_Horizontal_Upper", new Vector3(120.3f, 11.0f, 0f));
 
-            // 4. HỐ TỬ THẦN VĨNH VIỄN DEATHPIT (Phần 4: X = 145..148, Y = 3.35, rộng đúng 3 tiles = 48px)
+            // 4. HỐ TỬ THẦN VĨNH VIỄN DEATHPIT (Phần 4: X = 145..148, Y = 3.3125, rộng đúng 3 tiles = 48px)
             GameObject dp1 = InstantiatePrefab("DeathPit", parent);
             if (dp1 != null)
             {
                 dp1.name = "P4_DeathPit_Block1";
-                dp1.transform.position = new Vector3(145.75f, 3.35f, 0f);
+                dp1.transform.position = new Vector3(145.75f, 3.3125f, 0f);
             }
 
             GameObject dp2 = InstantiatePrefab("DeathPit", parent);
             if (dp2 != null)
             {
                 dp2.name = "P4_DeathPit_Block2";
-                dp2.transform.position = new Vector3(147.25f, 3.35f, 0f);
+                dp2.transform.position = new Vector3(147.25f, 3.3125f, 0f);
+
+                // Scene chuẩn lưu override m_FlipY = 0 cho SpriteRenderer của khối này dù giá trị
+                // trùng mặc định của prefab. Ghi tường minh để lần Build sau cho ra kết quả khớp.
+                SpriteRenderer dp2Sr = dp2.GetComponent<SpriteRenderer>();
+                if (dp2Sr != null)
+                {
+                    dp2Sr.flipY = false;
+                    PrefabUtility.RecordPrefabInstancePropertyModifications(dp2Sr);
+                    EditorUtility.SetDirty(dp2Sr);
+                }
             }
 
             // 5. MŨI TÊN ĐẨY KHÍ ARROWBOOSTER:
@@ -878,19 +929,10 @@ namespace OneHitDown.EditorTools
 
         #endregion
 
-        #region Module 2 Mocks (Vạc Lửa, Chông Gai, Cầu Gai Con Lắc)
+        #region Traps & Hazards (Vạc Lửa, Chông Gai, Cầu Gai Con Lắc)
 
-        private static void BuildModule2Mocks(Transform parent)
+        private static void BuildTrapsAndHazards(Transform parent)
         {
-            // Cắt chuẩn từng khung 16x32 (1x2 units, tâm chính giữa) cho Vạc Lửa để không dùng nhầm sprite bị auto-slice gộp 3 đế (48x17)
-            Sprite fireOff = EnsureExtraSprite(FireOffPath, "Fire_Off_Full16x32", new Rect(0f, 0f, 16f, 32f), Vector4.zero);
-            Sprite fireHit = EnsureExtraSprite(FireHitPath, "Fire_Hit_Full16x32_0", new Rect(0f, 0f, 16f, 32f), Vector4.zero);
-            Sprite[] fireOnFrames = new Sprite[3]
-            {
-                EnsureExtraSprite(FireOnPath, "Fire_On_Full16x32_0", new Rect(0f,  0f, 16f, 32f), Vector4.zero),
-                EnsureExtraSprite(FireOnPath, "Fire_On_Full16x32_1", new Rect(16f, 0f, 16f, 32f), Vector4.zero),
-                EnsureExtraSprite(FireOnPath, "Fire_On_Full16x32_2", new Rect(32f, 0f, 16f, 32f), Vector4.zero)
-            };
             Sprite spikesSprite = LoadFirstSprite(SpikesTexturePath, "Idle_0");
 
             // 1. CHÔNG GAI TRẦN (Gắn sát đáy các vòm trần đá):
@@ -901,56 +943,57 @@ namespace OneHitDown.EditorTools
             CreateSpikeRowFromLeft("P4_CeilingSpikes",     136f, 15.5f, 8, parent, spikesSprite, pointingDown: true);
             CreateSpikeRowFromLeft("P5_CeilingSpikes",     177f, 16.5f, 8, parent, spikesSprite, pointingDown: true);
 
-            // 2. CHÔNG GAI ĐÁY HỐ SÀN:
+            // 2. CHÔNG GAI ĐÁY HỐ SÀN & TRÊN NỬA PHẢI 3 KHỐI BĂNG PHẦN 4:
             CreateSpikeRowFromLeft("P1_FloorSpikes_Pit1",   33f,  1.5f, 4, parent, spikesSprite, pointingDown: false);
             CreateSpikeRowFromLeft("P2_FloorSpikes_Pit2",   56f,  1.5f, 4, parent, spikesSprite, pointingDown: false);
+            CreateSpikeRowFromLeft("P4_IceSlope1_Spikes", 125.5f, 8.5f, 3, parent, spikesSprite, pointingDown: false, customWidth: 3.5f);
+            CreateSpikeRowFromLeft("P4_IceSlope2_Spikes", 132.5f, 6.5f, 3, parent, spikesSprite, pointingDown: false, customWidth: 3.5f);
+            CreateSpikeRowFromLeft("P4_IceSlope3_Spikes", 139.0f, 4.5f, 3, parent, spikesSprite, pointingDown: false, customWidth: 3.0f);
 
             // 3. VẠC LỬA CHU KỲ (2s tắt - 0.35s báo - 1s bật, đặt âm trong hốc đá sao cho mặt vạc khớp mặt sàn):
             // Phần 1: Hốc 2 Vạc Lửa (X = 18.5 & 19.5, tâm Y = 4.0 -> đế vạc nằm ở Y = 3..4, ngọn lửa ở Y = 4..5)
-            CreateMockFireTrap(parent, "P1_FireTrap_0", new Vector3(18.5f, 4.0f, 0f), fireOff, fireHit, fireOnFrames, previewHitState: false, frameIdx: 0);
-            CreateMockFireTrap(parent, "P1_FireTrap_1", new Vector3(19.5f, 4.0f, 0f), fireOff, fireHit, fireOnFrames, previewHitState: true,  frameIdx: 1);
+            CreateFireTrap(parent, "P1_FireTrap_0", new Vector3(18.5f, 4.0f, 0f));
+            CreateFireTrap(parent, "P1_FireTrap_1", new Vector3(19.5f, 4.0f, 0f));
 
             // Phần 2: Đài Tế Lửa 4 Vạc dưới Kiwi #1 (X = 50.5, 51.5, 52.5, 53.5 tại Y = 4.0)
             for (int i = 0; i < 4; i++)
             {
-                bool isHitPreview = (i == 1 || i == 2);
-                CreateMockFireTrap(parent, $"P2_FireTrap_Kiwi1_{i}", new Vector3(50.5f + i * 1.0f, 4.0f, 0f), fireOff, fireHit, fireOnFrames, previewHitState: isHitPreview, frameIdx: i);
+                CreateFireTrap(parent, $"P2_FireTrap_Kiwi1_{i}", new Vector3(50.5f + i * 1.0f, 4.0f, 0f));
             }
 
             // Phần 3: Hồ Lửa Ngầm Liên Hoàn ở 2 lòng hồ (Trái: X = 82..96, Phải: X = 101..118, tâm Y = 2.0 trên đáy Y = 1.0)
             for (int fx = 82; fx < 96; fx++)
             {
-                bool isHitPreview = (fx % 2 != 0);
-                CreateMockFireTrap(parent, $"P3_LavaFire_Left_{fx}", new Vector3(fx + 0.5f, 2.0f, 0f), fireOff, fireHit, fireOnFrames, previewHitState: isHitPreview, frameIdx: fx);
+                CreateFireTrap(parent, $"P3_LavaFire_Left_{fx}", new Vector3(fx + 0.5f, 2.0f, 0f));
             }
             for (int fx = 101; fx < 118; fx++)
             {
-                bool isHitPreview = (fx % 2 == 0);
-                CreateMockFireTrap(parent, $"P3_LavaFire_Right_{fx}", new Vector3(fx + 0.5f, 2.0f, 0f), fireOff, fireHit, fireOnFrames, previewHitState: isHitPreview, frameIdx: fx);
+                CreateFireTrap(parent, $"P3_LavaFire_Right_{fx}", new Vector3(fx + 0.5f, 2.0f, 0f));
             }
 
             // Phần 4: 3 Vạc lửa đáy Hố Tử Thần Vĩnh Viễn (X = 145.5, 146.5, 147.5 tại Y = 2.0)
             for (int i = 0; i < 3; i++)
             {
-                CreateMockFireTrap(parent, $"P4_DeathPitFire_{i}", new Vector3(145.5f + i * 1.0f, 2.0f, 0f), fireOff, fireHit, fireOnFrames, previewHitState: false, frameIdx: i);
+                CreateFireTrap(parent, $"P4_DeathPitFire_{i}", new Vector3(145.5f + i * 1.0f, 2.0f, 0f));
             }
 
             // Phần 5: 7 Vạc lửa Vực Cuối (X = 168.5..174.5 tại Y = 2.0)
             for (int i = 0; i < 7; i++)
             {
-                bool isHitPreview = (i % 2 != 0);
-                CreateMockFireTrap(parent, $"P5_FinalPitFire_{i}", new Vector3(168.5f + i * 1.0f, 2.0f, 0f), fireOff, fireHit, fireOnFrames, previewHitState: isHitPreview, frameIdx: i);
+                CreateFireTrap(parent, $"P5_FinalPitFire_{i}", new Vector3(168.5f + i * 1.0f, 2.0f, 0f));
             }
 
             // 4. CẦU GAI CON LẮC XÍCH SẮT (Phần 5: treo từ vòm trần X = 181.0, Y = 16.8 xuống Y = 7.0)
-            BuildMockPendulum(parent, new Vector3(181.0f, 16.8f, 0f), length: 9.8f);
+            CreateSpikedBallPendulum(parent, new Vector3(181.0f, 16.8f, 0f), length: 9.8f);
         }
 
-        private static void CreateSpikeRowFromLeft(string name, float xLeft, float yCenter, int count, Transform parent, Sprite sprite, bool pointingDown)
+        private static void CreateSpikeRowFromLeft(string name, float xLeft, float yCenter, int count, Transform parent, Sprite sprite, bool pointingDown, float customWidth = -1f)
         {
+            float totalWidth = customWidth > 0f ? customWidth : count * 1.0f;
             GameObject row = new GameObject(name);
             row.transform.SetParent(parent);
-            row.transform.position = new Vector3(xLeft + count * 0.5f, yCenter, 0f);
+            row.transform.position = new Vector3(xLeft + totalWidth * 0.5f, yCenter, 0f);
+            row.transform.localScale = new Vector3(totalWidth / count, 1f, 1f);
 
             int trapsLayer = LayerMask.NameToLayer("Traps");
             if (trapsLayer >= 0) row.layer = trapsLayer;
@@ -960,7 +1003,8 @@ namespace OneHitDown.EditorTools
             for (int i = 0; i < count; i++)
             {
                 GameObject sGo = new GameObject($"Spike_{i}");
-                sGo.transform.SetParent(row.transform);
+                sGo.transform.SetParent(row.transform, false);
+                sGo.transform.localScale = Vector3.one;
                 sGo.transform.localPosition = new Vector3(startX + i * 1.0f, 0f, 0f);
                 if (pointingDown)
                 {
@@ -978,142 +1022,70 @@ namespace OneHitDown.EditorTools
             col.offset = new Vector2(0f, pointingDown ? 0.15f : -0.15f);
         }
 
-        private static void CreateMockFireTrap(Transform parent, string name, Vector3 pos, Sprite off, Sprite hit, Sprite[] onFrames, bool previewHitState = false, int frameIdx = 0)
+        private static void CreateFireTrap(Transform parent, string name, Vector3 pos)
         {
-            GameObject fireGo = new GameObject(name);
-            fireGo.transform.SetParent(parent);
+            // Prefab chuẩn đã tự cấu hình cooldown/warning/active, hitbox và đế Ground.
+            GameObject fireGo = InstantiatePrefab("FireTrap", parent);
+            if (fireGo == null)
+            {
+                Debug.LogError($"[Level03SceneBuilder] Thiếu prefab FireTrap — không tạo được '{name}'.");
+                return;
+            }
+
+            fireGo.name = name;
             fireGo.transform.position = pos;
 
-            int trapsLayer = LayerMask.NameToLayer("Traps");
-            if (trapsLayer >= 0) fireGo.layer = trapsLayer;
-
-            SpriteRenderer sr = fireGo.AddComponent<SpriteRenderer>();
-            Sprite initialOn = (onFrames != null && onFrames.Length > 0) ? onFrames[Mathf.Abs(frameIdx) % onFrames.Length] : off;
-            sr.sprite = previewHitState && hit != null ? hit : (initialOn != null ? initialOn : off);
-            sr.sortingOrder = 6;
-
-            // Đế vạc lửa (nửa dưới 16x16) có collider Ground để người chơi đứng lên được khi lửa tắt
-            GameObject baseBlock = new GameObject("FireBaseSolid");
-            baseBlock.transform.SetParent(fireGo.transform, false);
-            baseBlock.transform.localPosition = new Vector3(0f, -0.5f, 0f);
-            int groundLayer = LayerMask.NameToLayer("Ground");
-            if (groundLayer >= 0) baseBlock.layer = groundLayer;
-            BoxCollider2D baseCol = baseBlock.AddComponent<BoxCollider2D>();
-            baseCol.size = new Vector2(1.0f, 1.0f);
-
-            // Ngọn lửa (nửa trên 16x16) là Trigger Hazard
-            GameObject hitbox = new GameObject("FireHitbox");
-            hitbox.transform.SetParent(fireGo.transform, false);
-            hitbox.transform.localPosition = new Vector3(0f, 0.5f, 0f);
-            hitbox.tag = "Hazard";
-            if (trapsLayer >= 0) hitbox.layer = trapsLayer;
-
-            BoxCollider2D hitCol = hitbox.AddComponent<BoxCollider2D>();
-            hitCol.isTrigger = true;
-            hitCol.size = new Vector2(0.8f, 0.9f);
-
-            MockFireTrap mft = fireGo.AddComponent<MockFireTrap>();
-            SerializedObject so = new SerializedObject(mft);
-            so.FindProperty("offTime").floatValue = 2.0f;
-            so.FindProperty("warningTime").floatValue = 0.35f;
-            so.FindProperty("activeTime").floatValue = 1.0f;
-            so.FindProperty("spriteRenderer").objectReferenceValue = sr;
-            so.FindProperty("fireHitbox").objectReferenceValue = hitbox;
-            so.FindProperty("offSprite").objectReferenceValue = off;
-            so.FindProperty("warningSprite").objectReferenceValue = hit;
-
-            SerializedProperty framesProp = so.FindProperty("activeFrames");
-            if (onFrames != null)
-            {
-                framesProp.arraySize = onFrames.Length;
-                for (int i = 0; i < onFrames.Length; i++)
-                {
-                    framesProp.GetArrayElementAtIndex(i).objectReferenceValue = onFrames[i];
-                }
-            }
-            so.ApplyModifiedProperties();
+            // Prefab gốc dùng sortingOrder 0; Scene Màn 3 cần 6 để nằm trên nền.
+            SpriteRenderer sr = fireGo.GetComponentInChildren<SpriteRenderer>(true);
+            if (sr != null) sr.sortingOrder = 6;
         }
 
-        private static void BuildMockPendulum(Transform parent, Vector3 pivotPos, float length)
+        private static void CreateSpikedBallPendulum(Transform parent, Vector3 pivotPos, float length)
         {
-            GameObject pendulumGo = new GameObject("P5_SpikedBallPendulum");
-            pendulumGo.transform.SetParent(parent);
-            pendulumGo.transform.position = pivotPos;
-
-            Sprite chainSprite = LoadFirstSprite(SpikedChainPath, "Chain_0");
-            Sprite ballSprite = LoadFirstSprite(SpikedBallPath, "Spiked Ball_0");
-
-            int chainCount = Mathf.RoundToInt(length / 0.65f);
-            for (int i = 0; i < chainCount; i++)
+            // Prefab chuẩn đã có pivot, ball hazard, xích và collider. Chỉ đặt vị trí treo + độ dài tay đòn.
+            GameObject pendulumGo = InstantiatePrefab("SpikedBall", parent);
+            if (pendulumGo == null)
             {
-                GameObject link = new GameObject($"ChainLink_{i}");
-                link.transform.SetParent(pendulumGo.transform, false);
-                link.transform.localPosition = new Vector3(0f, -i * 0.65f, 0f);
-
-                SpriteRenderer lsr = link.AddComponent<SpriteRenderer>();
-                lsr.sprite = chainSprite;
-                lsr.sortingOrder = 7;
+                Debug.LogError("[Level03SceneBuilder] Thiếu prefab SpikedBall — không tạo được Cầu Gai Con Lắc.");
+                return;
             }
 
-            GameObject ballGo = new GameObject("Ball_Hazard");
-            ballGo.transform.SetParent(pendulumGo.transform, false);
-            ballGo.transform.localPosition = new Vector3(0f, -length, 0f);
-            ballGo.tag = "Hazard";
+            pendulumGo.name = "P5_SpikedBallPendulum";
+            pendulumGo.transform.position = pivotPos;
 
-            int trapsLayer = LayerMask.NameToLayer("Traps");
-            if (trapsLayer >= 0) ballGo.layer = trapsLayer;
-
-            SpriteRenderer bsr = ballGo.AddComponent<SpriteRenderer>();
-            bsr.sprite = ballSprite;
-            bsr.sortingOrder = 8;
-
-            CircleCollider2D col = ballGo.AddComponent<CircleCollider2D>();
-            col.isTrigger = true;
-            col.radius = 0.85f;
-
-            MockSpikedBallPendulum pendulum = pendulumGo.AddComponent<MockSpikedBallPendulum>();
-            SerializedObject so = new SerializedObject(pendulum);
-            so.FindProperty("swingAngle").floatValue = 48f;
-            so.FindProperty("swingSpeed").floatValue = 2.0f;
-            so.FindProperty("armLength").floatValue = length;
-            so.FindProperty("ballTransform").objectReferenceValue = ballGo.transform;
-            so.ApplyModifiedProperties();
+            SpikedBallPendulum pendulum = pendulumGo.GetComponent<SpikedBallPendulum>();
+            if (pendulum != null)
+            {
+                SerializedObject so = new SerializedObject(pendulum);
+                SerializedProperty armProp = so.FindProperty("armLength");
+                if (armProp != null && !Mathf.Approximately(armProp.floatValue, length))
+                {
+                    armProp.floatValue = length;
+                    so.ApplyModifiedPropertiesWithoutUndo();
+                }
+            }
         }
 
         #endregion
 
-        #region Module 4 Mocks (Bệ Nâng kèm Ray Xích, Kiwi [3/3], Dâu Tây, Đích)
+        #region Relics & Goal (Bệ Nâng kèm Ray Xích, Kiwi [3/3], Dâu Tây, Đích)
 
-        private static void BuildModule4Mocks(Transform parent)
+        private static void BuildRelicsAndGoal(Transform parent)
         {
             Sprite kiwiSprite = LoadFirstSprite(KiwiPath, "Kiwi_0");
             Sprite strawberrySprite = LoadFirstSprite(StrawberryPath, "Strawberry_0");
-            // Cắt chuẩn 1 frame 32x8 (2.0 x 0.5 units) cho Bệ Nâng thay vì dùng sprite mặc định bị gộp cả 8 frames (256x8)
-            Sprite greyPlatSprite = EnsureExtraSprite(MovingPlatformGreyPath, "GreyOn_Frame0_32x8", new Rect(0f, 0f, 32f, 8f), Vector4.zero);
-            Sprite brownPlatSprite = EnsureExtraSprite(MovingPlatformBrownPath, "BrownOn_Frame0_32x8", new Rect(0f, 0f, 32f, 8f), Vector4.zero);
             Sprite chainSprite = LoadFirstSprite(PlatformChainPath, "Chain_0");
-            Sprite trophySprite = LoadFirstSprite(TrophyPath, "End (Idle)_0");
-            Sprite startSignSprite = LoadFirstSprite(StartSignPath, "Start (Moving) (64x64)_0");
 
-            // 1. BỆ XUẤT PHÁT LEVEL START Ở ĐẦU MÀN (X = 2.2, mặt sàn Y = 4.0 -> tâm Y = 6.0 cho sprite 64x64)
-            if (startSignSprite != null)
-            {
-                GameObject startGo = new GameObject("P1_LevelStart_Sign");
-                startGo.transform.SetParent(parent);
-                startGo.transform.position = new Vector3(2.2f, 6.0f, 0f);
-                SpriteRenderer sr = startGo.AddComponent<SpriteRenderer>();
-                sr.sprite = startSignSprite;
-                sr.sortingOrder = 4;
-            }
+            // 1. BỆ XUẤT PHÁT LEVEL START ĐÃ ĐƯỢC TẠO BẰNG PREFAB 'LevelStart' TẠI ROOT (X = 2.2, Y = 4.0)
 
             // 2. 3 TRÁI KIWI CỔ VẬT BẮT BUỘC [3/3] ĐỂ MỞ CỔNG THẦN:
-            CreateCollectible(parent, "Kiwi_Relic_1", new Vector3(52.0f, 6.6f, 0f), kiwiSprite, isRelic: true, "Kiwi Lửa Thiêu [1/3]");
-            CreateCollectible(parent, "Kiwi_Relic_2", new Vector3(104.5f, 11.8f, 0f), kiwiSprite, isRelic: true, "Kiwi Bệ Nâng [2/3]");
-            CreateCollectible(parent, "Kiwi_Relic_3", new Vector3(148.2f, 5.3f, 0f), kiwiSprite, isRelic: true, "Kiwi Đáy Dốc Băng [3/3]");
+            CreateCollectible(parent, "Kiwi_Relic_1", new Vector3(52.0f, 6.6f, 0f), kiwiSprite, isRelic: true);
+            CreateCollectible(parent, "Kiwi_Relic_2", new Vector3(104.5f, 11.8f, 0f), kiwiSprite, isRelic: true);
+            CreateCollectible(parent, "Kiwi_Relic_3", new Vector3(148.2f, 5.3f, 0f), kiwiSprite, isRelic: true);
 
             // 3. 2 QUẢ THƯỞNG PHỤ: DÂU TÂY
-            CreateCollectible(parent, "Berry_Bonus_1", new Vector3(29.5f, 13.0f, 0f), strawberrySprite, isRelic: false, "Dâu Tây Thưởng #1");
-            CreateCollectible(parent, "Berry_Bonus_2", new Vector3(114.0f, 11.8f, 0f), strawberrySprite, isRelic: false, "Dâu Tây Thưởng #2");
+            CreateCollectible(parent, "Berry_Bonus_1", new Vector3(29.5f, 13.0f, 0f), strawberrySprite, isRelic: false);
+            CreateCollectible(parent, "Berry_Bonus_2", new Vector3(114.0f, 11.8f, 0f), strawberrySprite, isRelic: false);
 
             // 4. BỆ NÂNG DI ĐỘNG (MovingPlatform) KÈM ĐƯỜNG RAY MẮT XÍCH (Chain.png) KHỚP 100% ẢNH DEMO:
             // Bệ Nâng Ngang X ở Phần 3: Ray xích từ X = 84.75 -> 94.5 tại Y = 5.5; Bệ đặt tại chính giữa (89.5, 5.5), ghép 2 đốt 32x8 nguyên vẹn (rộng 4.0 units)
@@ -1126,9 +1098,6 @@ namespace OneHitDown.EditorTools
                 startOffset: new Vector2(-3.0f, 0f),
                 moveOffset: new Vector2(6.0f, 0f),
                 speed: 3.5f,
-                segmentHalfSpan: 1.0f,
-                colliderWidth: 4.0f,
-                platSprite: brownPlatSprite,
                 chainSprite: chainSprite);
 
             // Bệ Nâng Dọc Y ở Phần 3: Ray xích dọc tại X = 104.5 từ Y = 4.25 (dưới bệ) lên tới Y = 11.0 (dưới Kiwi #2); Bệ đặt tại (104.5, 6.8) đúng như ảnh demo
@@ -1141,37 +1110,33 @@ namespace OneHitDown.EditorTools
                 startOffset: new Vector2(0f, -2.55f),
                 moveOffset: new Vector2(0f, 6.75f),
                 speed: 3.0f,
-                segmentHalfSpan: 0.7f,
-                colliderWidth: 3.4f,
-                platSprite: greyPlatSprite,
                 chainSprite: chainSprite);
 
             // 5. ĐIỆN THỜ CỔNG THẦN CUỐI MÀN (Đặt trên Bục Thép Tế Lễ Y = 5.0 -> tâm Y = 7.0 cho sprite 64x64)
-            CreateVictoryAltar(parent, new Vector3(194.0f, 7.0f, 0f), trophySprite);
+            // ExitGate đặt ở root Scene (không nằm trong nhóm) đúng như Scene chuẩn.
+            CreateVictoryAltar(new Vector3(194.0f, 6.46f, 0f));
         }
 
-        private static void CreateCollectible(Transform parent, string name, Vector3 pos, Sprite sprite, bool isRelic, string itemName)
+        private static void CreateCollectible(Transform parent, string name, Vector3 pos, Sprite sprite, bool isRelic)
         {
-            GameObject itemGo = new GameObject(name);
-            itemGo.transform.SetParent(parent);
+            // Prefab chuẩn tự mang SpriteRenderer + CircleCollider2D trigger + CollectibleItem đã cấu hình.
+            string prefabName = isRelic ? "Fruit_Kiwi" : "Fruit_Strawberry";
+            GameObject itemGo = InstantiatePrefab(prefabName, parent);
+            if (itemGo == null)
+            {
+                Debug.LogError($"[Level03SceneBuilder] Thiếu prefab {prefabName} — không tạo được '{name}'.");
+                return;
+            }
+
+            itemGo.name = name;
             itemGo.transform.position = pos;
-            itemGo.tag = "Item";
 
-            SpriteRenderer sr = itemGo.AddComponent<SpriteRenderer>();
-            sr.sprite = sprite;
-            sr.sortingOrder = 9;
-
-            CircleCollider2D col = itemGo.AddComponent<CircleCollider2D>();
-            col.isTrigger = true;
-            col.radius = 0.6f;
-
-            MockCollectibleItem mock = itemGo.AddComponent<MockCollectibleItem>();
-            SerializedObject so = new SerializedObject(mock);
-            so.FindProperty("itemName").stringValue = itemName;
-            so.FindProperty("isRelic").boolValue = isRelic;
-            so.FindProperty("bobAmplitude").floatValue = 0.15f;
-            so.FindProperty("bobSpeed").floatValue = 3.0f;
-            so.ApplyModifiedProperties();
+            SpriteRenderer sr = itemGo.GetComponent<SpriteRenderer>();
+            if (sr != null)
+            {
+                sr.sprite = sprite;
+                sr.sortingOrder = 9;
+            }
         }
 
         private static void CreateMovingPlatformWithChainTrack(
@@ -1183,9 +1148,6 @@ namespace OneHitDown.EditorTools
             Vector2 startOffset,
             Vector2 moveOffset,
             float speed,
-            float segmentHalfSpan,
-            float colliderWidth,
-            Sprite platSprite,
             Sprite chainSprite)
         {
             // Vẽ đường ray mắt xích cố định nối giữa điểm đầu và điểm cuối với bước mắt xích chuẩn 0.75 unit (12px)
@@ -1208,51 +1170,153 @@ namespace OneHitDown.EditorTools
                 }
             }
 
-            GameObject platGo = new GameObject(name);
-            platGo.transform.SetParent(parent);
-            platGo.transform.position = initialPos;
-
-            int groundLayer = LayerMask.NameToLayer("Ground");
-            if (groundLayer >= 0) platGo.layer = groundLayer;
-
-            // Ghép 2 đốt bệ nâng 32x8 nguyên vẹn (không bị cắt cụt đầu bên phải như khi Tiled 3.0 unit trên sheet 256x8)
-            float[] segOffsets = { -segmentHalfSpan, segmentHalfSpan };
-            for (int i = 0; i < segOffsets.Length; i++)
+            GameObject platGo = InstantiatePrefab("MovingPlatform", parent);
+            if (platGo == null)
             {
-                GameObject segGo = new GameObject($"PlatformSegment_{i}");
-                segGo.transform.SetParent(platGo.transform, false);
-                segGo.transform.localPosition = new Vector3(segOffsets[i], 0f, 0f);
-                SpriteRenderer sr = segGo.AddComponent<SpriteRenderer>();
-                sr.sprite = platSprite;
-                sr.sortingOrder = 4 + i;
+                Debug.LogError($"[Level03SceneBuilder] Thiếu prefab MovingPlatform — không tạo được '{name}'.");
+                return;
             }
 
-            BoxCollider2D col = platGo.AddComponent<BoxCollider2D>();
-            col.size = new Vector2(colliderWidth, 0.5f);
+            platGo.name = name;
+            platGo.transform.position = initialPos;
 
-            MockMovingPlatform mmp = platGo.AddComponent<MockMovingPlatform>();
-            SerializedObject so = new SerializedObject(mmp);
-            so.FindProperty("startOffset").vector2Value = startOffset;
-            so.FindProperty("moveOffset").vector2Value = moveOffset;
-            so.FindProperty("speed").floatValue = speed;
-            so.ApplyModifiedProperties();
+            MovingPlatform platform = platGo.GetComponent<MovingPlatform>();
+            if (platform != null)
+            {
+                SerializedObject so = new SerializedObject(platform);
+                SerializedProperty spStart = so.FindProperty("startOffset");
+                SerializedProperty spMove = so.FindProperty("moveOffset");
+                SerializedProperty spSpeed = so.FindProperty("speed");
+
+                Vector2 oldStart = spStart.vector2Value;
+                Vector2 oldMove = spMove.vector2Value;
+                spStart.vector2Value = startOffset;
+                spMove.vector2Value = moveOffset;
+                spSpeed.floatValue = speed;
+                so.ApplyModifiedPropertiesWithoutUndo();
+
+                // Scene chuẩn lưu cả hai thành phần X/Y của startOffset và moveOffset kể cả khi
+                // giá trị trùng mặc định của prefab. Unity chỉ ghi override cho thành phần thực sự
+                // đổi giá trị, nên ép ghi bằng cách lệch rồi trả về đúng giá trị đích.
+                ForceVector2ComponentOverride(platform, "startOffset", oldStart, startOffset);
+                ForceVector2ComponentOverride(platform, "moveOffset", oldMove, moveOffset);
+            }
         }
 
-        private static void CreateVictoryAltar(Transform parent, Vector3 pos, Sprite trophySprite)
+        private static void CreateVictoryAltar(Vector3 pos)
         {
-            GameObject altar = new GameObject("P5_VictoryAltar_Goal");
-            altar.transform.SetParent(parent);
-            altar.transform.position = pos;
+            // Prefab chuẩn đã có SpriteRenderer + Animator + collider trigger + ExitGate.
+            GameObject exitGateGo = InstantiatePrefab("ExitGate", null);
+            if (exitGateGo == null)
+            {
+                Debug.LogError("[Level03SceneBuilder] Thiếu prefab ExitGate — không tạo được cổng kết thúc.");
+                return;
+            }
 
-            SpriteRenderer sr = altar.AddComponent<SpriteRenderer>();
-            sr.sprite = trophySprite;
-            sr.sortingOrder = 9;
+            exitGateGo.name = "ExitGate";
+            exitGateGo.transform.position = pos;
 
-            BoxCollider2D col = altar.AddComponent<BoxCollider2D>();
-            col.isTrigger = true;
-            col.size = new Vector2(2.0f, 2.5f);
+            // Scene chuẩn (Level_03.unity) KHÔNG còn nhãn "StatusText" bên trong ExitGate, nhưng
+            // vẫn giữ lại các override do nhãn đó từng tạo ra (statusLabel, font, material,
+            // anchored position, cast/receive shadows). Dựng lại đúng chuỗi thao tác đó rồi mới gỡ
+            // nhãn, để bản Build sau cho ra kết quả trùng khớp scene chuẩn.
+            Transform statusLabelTf = exitGateGo.transform.Find("StatusText");
+            if (statusLabelTf != null)
+            {
+                ApplyLegacyStatusLabelOverrides(exitGateGo, statusLabelTf);
+                UnityEngine.Object.DestroyImmediate(statusLabelTf.gameObject);
+            }
 
-            altar.AddComponent<MockGoalTrigger>();
+            ExitGate gate = exitGateGo.GetComponent<ExitGate>();
+            if (gate != null)
+            {
+                SerializedObject gateSo = new SerializedObject(gate);
+                SerializedProperty labelProp = gateSo.FindProperty("statusLabel");
+                if (labelProp != null)
+                {
+                    labelProp.objectReferenceValue = null;
+                    gateSo.ApplyModifiedPropertiesWithoutUndo();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Ghi lại đúng các override mà nhãn "StatusText" từng tạo ra trong scene chuẩn trước khi
+        /// nhãn bị gỡ bỏ: font TMP, material, anchored position, cast/receive shadows và
+        /// statusLabel = null trên ExitGate. Giá trị lấy nguyên từ scene chuẩn Level_03.unity.
+        /// </summary>
+        private static void ApplyLegacyStatusLabelOverrides(GameObject exitGateGo, Transform statusLabelTf)
+        {
+            const string LiberationSansGuid = "8f586378b4e144a9851e7b34d9b748ee";
+
+            ExitGate gate = exitGateGo.GetComponent<ExitGate>();
+            if (gate != null)
+            {
+                SerializedObject gateSo = new SerializedObject(gate);
+                SerializedProperty labelProp = gateSo.FindProperty("statusLabel");
+                if (labelProp != null)
+                {
+                    labelProp.objectReferenceValue = null;
+                    gateSo.ApplyModifiedPropertiesWithoutUndo();
+                }
+            }
+
+            TMP_Text labelText = statusLabelTf.GetComponent<TMP_Text>();
+            if (labelText != null)
+            {
+                string fontPath = AssetDatabase.GUIDToAssetPath(LiberationSansGuid);
+                TMP_FontAsset font = string.IsNullOrEmpty(fontPath)
+                    ? null
+                    : AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(fontPath);
+
+                if (font != null)
+                {
+                    labelText.font = font;
+                    EditorUtility.SetDirty(labelText);
+                    PrefabUtility.RecordPrefabInstancePropertyModifications(labelText);
+                }
+
+                // Scene chuẩn còn lưu m_TextStyleHashCode của nhãn; ghi đúng giá trị đó.
+                SerializedObject textSo = new SerializedObject(labelText);
+                SerializedProperty styleProp = textSo.FindProperty("m_TextStyleHashCode");
+                if (styleProp != null)
+                {
+                    styleProp.intValue = -1183493901;
+                    textSo.ApplyModifiedPropertiesWithoutUndo();
+                    PrefabUtility.RecordPrefabInstancePropertyModifications(labelText);
+                }
+            }
+
+            RectTransform labelRect = statusLabelTf as RectTransform;
+            if (labelRect != null)
+            {
+                Vector2 anchored = labelRect.anchoredPosition;
+                labelRect.anchoredPosition = new Vector2(anchored.x, anchored.y + 1f);
+                PrefabUtility.RecordPrefabInstancePropertyModifications(labelRect);
+                labelRect.anchoredPosition = new Vector2(anchored.x, -0f);
+                PrefabUtility.RecordPrefabInstancePropertyModifications(labelRect);
+                EditorUtility.SetDirty(labelRect);
+            }
+
+            MeshRenderer labelRenderer = statusLabelTf.GetComponent<MeshRenderer>();
+            if (labelRenderer != null)
+            {
+                // Scene chuẩn lưu m_CastShadows = 0 (Off) và m_ReceiveShadows = 0 (false).
+                labelRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                PrefabUtility.RecordPrefabInstancePropertyModifications(labelRenderer);
+                labelRenderer.receiveShadows = false;
+                PrefabUtility.RecordPrefabInstancePropertyModifications(labelRenderer);
+                EditorUtility.SetDirty(labelRenderer);
+            }
+
+            // Scene chuẩn còn lưu MinDistance của AudioSource trên ExitGate.
+            AudioSource gateAudio = exitGateGo.GetComponent<AudioSource>();
+            if (gateAudio != null)
+            {
+                gateAudio.minDistance = 1.2917643f;
+                EditorUtility.SetDirty(gateAudio);
+                PrefabUtility.RecordPrefabInstancePropertyModifications(gateAudio);
+            }
         }
 
         #endregion
@@ -1261,33 +1325,111 @@ namespace OneHitDown.EditorTools
 
         private static void CreateHudLabels(Transform parent)
         {
-            CreateLabel("HUD_Header1", "MÀN 3: HẦM MỘ BĂNG LÃNH & VẠC LỬA [HÌNH 1/5: KHỞI ĐẦU (0-40)]", new Vector3(20f, 15.2f, 0f), parent);
-            CreateLabel("HUD_Header2", "MÀN 3: HẦM MỘ BĂNG LÃNH & VẠC LỬA [HÌNH 2/5: KIWI 1 (40-80)]", new Vector3(60f, 15.2f, 0f), parent);
-            CreateLabel("HUD_Header3", "MÀN 3: HẦM MỘ BĂNG LÃNH & VẠC LỬA [HÌNH 3/5: KIWI 2 (80-120)]", new Vector3(100f, 15.2f, 0f), parent);
-            CreateLabel("HUD_Header4", "MÀN 3: HẦM MỘ BĂNG LÃNH & VẠC LỬA [HÌNH 4/5: KIWI 3 (120-160)]", new Vector3(140f, 14.5f, 0f), parent);
-            CreateLabel("HUD_Header5", "MÀN 3: HẦM MỘ BĂNG LÃNH & VẠC LỬA [HÌNH 5/5: VỀ ĐÍCH (160-200)]", new Vector3(180f, 15.2f, 0f), parent);
-
-            CreateLabel("HUD_GoalSign", "[OPEN 3/3]", new Vector3(194.0f, 9.5f, 0f), parent);
-        }
-
-        private static void CreateLabel(string name, string text, Vector3 position, Transform parent)
-        {
-            GameObject labelGo = new GameObject(name);
-            labelGo.transform.SetParent(parent);
-            labelGo.transform.position = position;
-
-            TextMesh tm = labelGo.AddComponent<TextMesh>();
-            tm.text = text;
-            tm.fontSize = 24;
-            tm.characterSize = 0.08f;
-            tm.color = new Color(1f, 0.95f, 0.8f, 0.95f);
-            tm.anchor = TextAnchor.MiddleCenter;
-            tm.alignment = TextAlignment.Center;
+            // Giữ nhóm root '--- 07. HUD LABELS & SIGNS ---' rỗng (0 con) đồng bộ với Level_03.unity và Level03ParityCheck (239 GameObject).
         }
 
         #endregion
 
+        /// <summary>
+        /// Tái lập các override có giá trị trùng mặc định prefab mà scene chuẩn vẫn lưu.
+        /// Cách làm: đặt giá trị lệch, LƯU scene, rồi trả về giá trị đích và LƯU lần nữa.
+        /// </summary>
+        private static bool ReapplyNoOpOverrides(Scene scene, string scenePath)
+        {
+            GameObject dp2 = FindInScene(scene, "P4_DeathPit_Block2");
+            SpriteRenderer dp2Sr = dp2 != null ? dp2.GetComponent<SpriteRenderer>() : null;
+            if (dp2Sr == null) return true;
+
+            dp2Sr.flipY = true;
+            PrefabUtility.RecordPrefabInstancePropertyModifications(dp2Sr);
+            EditorUtility.SetDirty(dp2Sr);
+            EditorSceneManager.MarkSceneDirty(scene);
+            if (!EditorSceneManager.SaveScene(scene, scenePath)) return false;
+
+            dp2Sr = FindInScene(scene, "P4_DeathPit_Block2").GetComponent<SpriteRenderer>();
+            dp2Sr.flipY = false;
+            PrefabUtility.RecordPrefabInstancePropertyModifications(dp2Sr);
+            EditorUtility.SetDirty(dp2Sr);
+            EditorSceneManager.MarkSceneDirty(scene);
+            return EditorSceneManager.SaveScene(scene, scenePath);
+        }
+
+        private static GameObject FindInScene(Scene scene, string name)
+        {
+            foreach (GameObject root in scene.GetRootGameObjects())
+            {
+                Transform[] all = root.GetComponentsInChildren<Transform>(true);
+                foreach (Transform t in all)
+                {
+                    if (t.name == name) return t.gameObject;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Ép Unity ghi override cho từng thành phần X/Y của một Vector2, kể cả khi giá trị đích
+        /// trùng giá trị mặc định của prefab. Cách làm: đặt lệch 1 đơn vị rồi trả về đúng giá trị
+        /// đích; Unity ghi nhận cả hai lần là modification nên scene sinh ra khớp scene chuẩn.
+        /// </summary>
+        private static void ForceVector2ComponentOverride(
+            Component target,
+            string propertyName,
+            Vector2 before,
+            Vector2 after)
+        {
+            if (target == null) return;
+
+            for (int axis = 0; axis < 2; axis++)
+            {
+                float desired = axis == 0 ? after.x : after.y;
+
+                SerializedObject so = new SerializedObject(target);
+                SerializedProperty prop = so.FindProperty(propertyName);
+                if (prop == null) return;
+
+                Vector2 v = prop.vector2Value;
+                if (axis == 0) v.x = desired + 1f; else v.y = desired + 1f;
+                prop.vector2Value = v;
+                so.ApplyModifiedPropertiesWithoutUndo();
+
+                so = new SerializedObject(target);
+                prop = so.FindProperty(propertyName);
+                v = prop.vector2Value;
+                if (axis == 0) v.x = desired; else v.y = desired;
+                prop.vector2Value = v;
+                so.ApplyModifiedPropertiesWithoutUndo();
+            }
+
+            EditorUtility.SetDirty(target);
+        }
+
         #region Helpers
+
+        /// <summary>
+        /// Danh sách prefab chính thức BẮT BUỘC phải có để dựng Màn 3.
+        /// Thiếu bất kỳ prefab nào thì hủy dựng thay vì tạo Scene khuyết thiếu.
+        /// </summary>
+        private static readonly string[] RequiredPrefabNames =
+        {
+            "IceRoad", "Trampoline", "FallingPlatform", "FanTrap", "DeathPit", "ArrowBooster",
+            "FireTrap", "SpikedBall", "MovingPlatform",
+            "Fruit_Kiwi", "Fruit_Strawberry",
+            "LevelStart", "ExitGate"
+        };
+
+        private static List<string> FindMissingPrefabs()
+        {
+            List<string> missing = new List<string>();
+            foreach (string prefabName in RequiredPrefabNames)
+            {
+                if (LoadPrefab(prefabName) == null)
+                {
+                    missing.Add(prefabName);
+                }
+            }
+            return missing;
+        }
 
         private static GameObject InstantiatePrefab(string prefabName, Transform parent)
         {
@@ -1302,7 +1444,11 @@ namespace OneHitDown.EditorTools
             GameObject go = AssetDatabase.LoadAssetAtPath<GameObject>(path);
             if (go != null) return go;
 
-            Debug.LogError($"[Level03SceneBuilder] Không tìm thấy Prefab chuẩn tại: {path}");
+            path = $"{PrefabsDir}/{prefabName}.prefab";
+            go = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (go != null) return go;
+
+            Debug.LogError($"[Level03SceneBuilder] Không tìm thấy Prefab chuẩn tại: {PrefabsTrapsDir}/{prefabName}.prefab hoặc {path}");
             return null;
         }
 
@@ -1373,26 +1519,6 @@ namespace OneHitDown.EditorTools
             }
 
             return null;
-        }
-
-        private static Sprite[] LoadIndexedSprites(string texturePath, string baseName, int count)
-        {
-            Sprite[] result = new Sprite[count];
-            UnityEngine.Object[] assets = AssetDatabase.LoadAllAssetsAtPath(texturePath);
-            var map = new Dictionary<string, Sprite>();
-
-            foreach (UnityEngine.Object asset in assets)
-            {
-                if (asset is Sprite s) map[s.name] = s;
-            }
-
-            for (int i = 0; i < count; i++)
-            {
-                string target = $"{baseName}_{i}";
-                if (map.TryGetValue(target, out Sprite sp)) result[i] = sp;
-            }
-
-            return result;
         }
 
         private static void EnsureDirectory(string path)

@@ -11,9 +11,6 @@ TextureImporter:
   - first:
       213: -3538277728090221592
     second: On (16x32)_2
-  - first:
-      213: 966344637685339192
-    second: On (16x32)_3
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -129,94 +126,6 @@ TextureImporter:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 48
-        height: 17
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 52bf20fe6595fe7c0800000000000000
-      internalID: -4039912110816036059
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: On (16x32)_1
-      rect:
-        serializedVersion: 2
-        x: 2
-        y: 16
-        width: 12
-        height: 16
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 0873d2455b80d1f50800000000000000
-      internalID: 6853643782822115200
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: On (16x32)_2
-      rect:
-        serializedVersion: 2
-        x: 19
-        y: 16
-        width: 12
-        height: 15
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 8e39184272385eec0800000000000000
-      internalID: -3538277728090221592
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: On (16x32)_3
-      rect:
-        serializedVersion: 2
-        x: 33
-        y: 16
-        width: 12
-        height: 13
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 83496dbf355296d00800000000000000
-      internalID: 966344637685339192
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Fire_On_Full16x32_0
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 0
         width: 16
         height: 32
       alignment: 0
@@ -227,14 +136,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: e54e59c06e13d5b4f8eaa8dae901d6a4
-      internalID: -1928415363
+      spriteID: 52bf20fe6595fe7c0800000000000000
+      internalID: -4039912110816036059
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Fire_On_Full16x32_1
+      name: On (16x32)_1
       rect:
         serializedVersion: 2
         x: 16
@@ -249,14 +158,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: bb0965c487cfe87438e4b3a2eb7c22fd
-      internalID: 866334022
+      spriteID: 0873d2455b80d1f50800000000000000
+      internalID: 6853643782822115200
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Fire_On_Full16x32_2
+      name: On (16x32)_2
       rect:
         serializedVersion: 2
         x: 32
@@ -271,8 +180,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: a906b2ed97625f9439930f8597cd826a
-      internalID: 382810101
+      spriteID: 8e39184272385eec0800000000000000
+      internalID: -3538277728090221592
       vertices: []
       indices: 
       edges: []
@@ -291,13 +200,9 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Fire_On_Full16x32_0: -1928415363
-      Fire_On_Full16x32_1: 866334022
-      Fire_On_Full16x32_2: 382810101
       On (16x32)_0: -4039912110816036059
       On (16x32)_1: 6853643782822115200
       On (16x32)_2: -3538277728090221592
-      On (16x32)_3: 966344637685339192
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -5,6 +5,9 @@ TextureImporter:
   - first:
       213: -5524587542107658741
     second: Off_0
+  - first:
+      213: 2041962078
+    second: Fire_Off_Full16x32
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -121,7 +124,7 @@ TextureImporter:
         x: 0
         y: 0
         width: 16
-        height: 17
+        height: 32
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}

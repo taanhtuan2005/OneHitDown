@@ -410,7 +410,7 @@ namespace OneHitDown.EditorTools
                 col.offset = new Vector2(0f, 0.775f);
                 col.size = new Vector2(0.85f, 1.55f);
 
-                // 5. Child GroundShadow (Shadow.png 16x16)
+                // 5. Child GroundShadow (Shadow.png 16x16) — tắt hiển thị để tránh khối vuông đen dưới chân
                 GameObject shadowGo = new GameObject("GroundShadow");
                 shadowGo.transform.SetParent(root.transform, false);
                 shadowGo.transform.localPosition = Vector3.zero;
@@ -419,6 +419,8 @@ namespace OneHitDown.EditorTools
                 SpriteRenderer shadowSr = shadowGo.AddComponent<SpriteRenderer>();
                 shadowSr.sprite = shadowSprite;
                 shadowSr.sortingOrder = 0; // Dưới chân nhân vật
+                shadowSr.enabled = false;
+                shadowGo.SetActive(false);
 
                 // 6. Child DustParticles (ParticleSystem)
                 GameObject dustGo = new GameObject("DustParticles");

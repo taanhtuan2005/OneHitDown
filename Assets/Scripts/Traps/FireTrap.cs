@@ -56,29 +56,43 @@ namespace OneHitDown.Traps
         {
             while (true)
             {
-                SetFlame(true);
-                yield return AnimatePhase(activeFrames, activeTime);
+                // Pha 1: Tắt — hộp lửa đứng yên
                 SetFlame(false);
-                if (sr != null && offSprite != null) sr.sprite = offSprite;
-                // Cảnh báo nằm TRONG 2 giây tắt, không kéo dài chu kỳ thành 4.35 giây.
+                if (sr != null)
+                {
+                    sr.enabled = true;
+                    if (offSprite != null) sr.sprite = offSprite;
+                }
+                // Cảnh báo nằm TRONG 2 giây tắt, không kéo dài chu kỳ.
                 float warningDuration = Mathf.Clamp(warningTime, 0f, cooldownTime);
                 float restDuration = cooldownTime - warningDuration;
                 if (restDuration > 0f) yield return new WaitForSeconds(restDuration);
+
+                // Pha 2: Cảnh báo — nắp hộp nhấp nhô (4 frames Hit 16x32)
                 IsWarning = true;
-                yield return AnimatePhase(warningFrames, warningDuration, true);
+                yield return AnimatePhase(warningFrames, warningDuration, loop: false);
                 IsWarning = false;
-                if (sr != null) sr.enabled = true;
+
+                // Pha 3: Phun lửa — hộp đứng yên, ngọn lửa bùng lên (lặp 3 frames On 16x32)
+                SetFlame(true);
+                yield return AnimatePhase(activeFrames, activeTime, loop: true);
             }
         }
 
-        private IEnumerator AnimatePhase(Sprite[] frames, float duration, bool blink = false)
+        private IEnumerator AnimatePhase(Sprite[] frames, float duration, bool loop = false)
         {
+            if (sr != null) sr.enabled = true;
             float elapsed = 0f;
+            const float loopFrameDuration = 0.08f;
             while (elapsed < duration)
             {
-                if (sr != null) sr.enabled = !blink || (int)(elapsed / 0.05f) % 2 == 0;
                 if (sr != null && frames != null && frames.Length > 0)
-                    sr.sprite = frames[Mathf.Min((int)(elapsed / duration * frames.Length), frames.Length - 1)];
+                {
+                    int idx = loop
+                        ? ((int)(elapsed / loopFrameDuration) % frames.Length)
+                        : Mathf.Min((int)(elapsed / duration * frames.Length), frames.Length - 1);
+                    sr.sprite = frames[idx];
+                }
                 elapsed += Time.deltaTime;
                 yield return null;
             }

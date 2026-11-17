@@ -1,4 +1,4 @@
-// Trần Văn Tuyên, phiên bản 1.0
+﻿// Trần Văn Tuyên, phiên bản 1.0
 // Module 3: Interactive Gadgets & Environmental Mechanics
 using System.Collections;
 using OneHitDown.Core;
@@ -30,6 +30,7 @@ namespace OneHitDown.Traps
         [SerializeField] private Sprite crackSprite;                // Sprite nứt mặt trên (Blocks/HitTop (22x22).png)
         [SerializeField] private Sprite part1Sprite;                // Mảnh vỡ 1 (Blocks/Part 1 (22x22).png)
         [SerializeField] private Sprite part2Sprite;                // Mảnh vỡ 2 (Blocks/Part 2 (22x22).png)
+        [SerializeField] private SpriteRenderer dirtRenderer;       // Tảng đất màu nâu bên dưới cùng biến mất khi sập hố
 
         private Vector3 startPosition;
         private bool isTriggered;
@@ -78,6 +79,13 @@ namespace OneHitDown.Traps
             {
                 blockRenderer.sprite = idleSprite;
             }
+
+            if (dirtRenderer == null)
+            {
+                Transform dirtChild = transform.Find("DirtBody");
+                if (dirtChild != null) dirtRenderer = dirtChild.GetComponent<SpriteRenderer>();
+            }
+            if (dirtRenderer != null) dirtRenderer.enabled = true;
         }
 
         /// <summary>Kiểm tra dữ liệu Inspector khi thiết kế màn chơi.</summary>
@@ -168,6 +176,11 @@ namespace OneHitDown.Traps
             if (blockRenderer != null)
             {
                 blockRenderer.enabled = false;
+            }
+
+            if (dirtRenderer != null)
+            {
+                dirtRenderer.enabled = false;
             }
 
             SpawnDebris();
@@ -261,6 +274,11 @@ namespace OneHitDown.Traps
                 {
                     blockRenderer.sprite = idleSprite;
                 }
+            }
+
+            if (dirtRenderer != null)
+            {
+                dirtRenderer.enabled = true;
             }
 
             if (deathTrigger != null)

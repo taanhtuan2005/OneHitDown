@@ -5,6 +5,15 @@ TextureImporter:
   - first:
       213: -8654421302381229280
     second: Hit (16x32)_0
+  - first:
+      213: 1034681505
+    second: Hit (16x32)_1
+  - first:
+      213: 1034681506
+    second: Hit (16x32)_2
+  - first:
+      213: 1034681507
+    second: Hit (16x32)_3
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -120,15 +129,15 @@ TextureImporter:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 64
-        height: 18
+        width: 16
+        height: 32
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
       spriteID: 02b4ef6bda155e780800000000000000
       internalID: -8654421302381229280
@@ -137,10 +146,10 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Fire_Hit_Full16x32_0
+      name: Hit (16x32)_1
       rect:
         serializedVersion: 2
-        x: 0
+        x: 16
         y: 0
         width: 16
         height: 32
@@ -154,6 +163,50 @@ TextureImporter:
       bones: []
       spriteID: 13d0826b2acdbaf4d8b3944f7e40cd5b
       internalID: 1034681505
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hit (16x32)_2
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 0
+        width: 16
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 23d0826b2acdbaf4d8b3944f7e40cd5c
+      internalID: 1034681506
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Hit (16x32)_3
+      rect:
+        serializedVersion: 2
+        x: 48
+        y: 0
+        width: 16
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 33d0826b2acdbaf4d8b3944f7e40cd5d
+      internalID: 1034681507
       vertices: []
       indices: 
       edges: []
@@ -172,8 +225,10 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Fire_Hit_Full16x32_0: 1034681505
       Hit (16x32)_0: -8654421302381229280
+      Hit (16x32)_1: 1034681505
+      Hit (16x32)_2: 1034681506
+      Hit (16x32)_3: 1034681507
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

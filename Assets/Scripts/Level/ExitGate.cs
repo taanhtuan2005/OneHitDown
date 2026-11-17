@@ -47,14 +47,13 @@ namespace OneHitDown.Level
                     : $"[LOCKED {safeCollected}/{safeRequired}]";
                 statusLabel.color = isUnlocked
                     ? new Color(0.35f, 1f, 0.48f, 1f)
-                    : new Color(1f, 0.28f, 0.28f, 1f);
+                    : new Color(1f, 0.42f, 0.42f, 1f);
             }
 
+            // Cúp giữ nguyên màu gốc ở mọi trạng thái; chỉ label đổi màu.
             if (spriteRenderer != null)
             {
-                spriteRenderer.color = isUnlocked
-                    ? Color.white
-                    : new Color(0.42f, 0.42f, 0.48f, 1f);
+                spriteRenderer.color = Color.white;
             }
         }
 

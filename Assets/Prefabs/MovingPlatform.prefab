@@ -83,12 +83,12 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 3392405149061117267, guid: c3eb0bbfb18aa70458b0f6ca5ee44568, type: 3}
+  m_Sprite: {fileID: -4439661413455613157, guid: 43685f8798321ea4fa95306c6b5d7072, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 16, y: 0.5}
+  m_Size: {x: 2, y: 0.5}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -150,7 +150,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fc816b30f80b0fd4b8f4bda70dd47f82, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::OneHitDown.Level.MovingPlatform
+  startOffset: {x: 0, y: 0}
   moveOffset: {x: 0, y: 3}
-  moveSpeed: 2
+  speed: 2
