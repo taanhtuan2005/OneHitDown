@@ -31,6 +31,7 @@ namespace OneHitDown.Traps
         [SerializeField] private Sprite part1Sprite;                // Mảnh vỡ 1 (Blocks/Part 1 (22x22).png)
         [SerializeField] private Sprite part2Sprite;                // Mảnh vỡ 2 (Blocks/Part 2 (22x22).png)
         [SerializeField] private SpriteRenderer dirtRenderer;       // Tảng đất màu nâu bên dưới cùng biến mất khi sập hố
+        [SerializeField] private bool permanentAfterCollapse;        // true: hố đã sập thì không khôi phục khi ResetLevel (Hố Sụt Màn 5)
 
         private Vector3 startPosition;
         private bool isTriggered;
@@ -255,6 +256,14 @@ namespace OneHitDown.Traps
         /// <summary>Khôi phục lại khối gạch nguyên vẹn khi nhân vật chết và hồi sinh.</summary>
         public void ResetState()
         {
+            // Hố đã sập mà bật chế độ vĩnh viễn thì giữ nguyên trạng thái mở, chỉ dọn mảnh vỡ VFX.
+            if (permanentAfterCollapse && isTriggered)
+            {
+                ClearDebris();
+                transform.position = startPosition;
+                return;
+            }
+
             StopAllCoroutines();
             collapseRoutine = null;
             isTriggered = false;
