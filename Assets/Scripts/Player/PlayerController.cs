@@ -50,6 +50,8 @@ namespace OneHitDown.Player
         [SerializeField] private float jumpForce = 15.5f;
         [SerializeField] private float doubleJumpForce = 13.5f;
         [SerializeField] private float defaultGravityScale = 3.5f;
+        // Rơi nhanh hơn lúc nhảy lên: khi đang đi xuống, trọng lực nhân thêm hệ số này.
+        [SerializeField] private float fallGravityMultiplier = 1.35f;
         [SerializeField] private float coyoteTime = 0.1f;
         [SerializeField] private float jumpBufferTime = 0.1f;
 
@@ -276,6 +278,12 @@ namespace OneHitDown.Player
             }
 
             CheckGround();
+
+            // Rơi nhanh hơn lúc nhảy lên: đang đi xuống thì tăng trọng lực để cú nhảy dứt khoát,
+            // lúc bay lên vẫn giữ gravityScale gốc để độ cao nhảy không đổi.
+            rb.gravityScale = rb.linearVelocity.y < 0f
+                ? defaultGravityScale * fallGravityMultiplier
+                : defaultGravityScale;
 
             // Tính toán gia tốc phù hợp ngữ cảnh (Băng / Không trung / Mặt đất)
             float accel;
