@@ -14,6 +14,7 @@ namespace OneHitDown.Traps
         [SerializeField] private float armLength = 9.8f;
         [SerializeField] private float maxAngle = 48f;
         [SerializeField] private float swingSpeed = 2f;
+        [SerializeField] private float phaseOffset;                 // Lệch pha (radian) để nhiều con lắc không đung đưa cùng nhịp
         [SerializeField] private Transform ball;
         [SerializeField] private Sprite chainSprite;
 
@@ -59,7 +60,8 @@ namespace OneHitDown.Traps
         protected override void Update()
         {
             timer += Time.deltaTime;
-            float angle = Mathf.Sin(timer * swingSpeed) * maxAngle;
+            // phaseOffset tách nhịp giữa các con lắc trong cùng phòng, nhờ đó luôn có cửa sổ an toàn để chạy qua.
+            float angle = Mathf.Sin(timer * swingSpeed + phaseOffset) * maxAngle;
             transform.localRotation = Quaternion.Euler(0f, 0f, angle);
         }
 
