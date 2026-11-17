@@ -41,3 +41,6 @@ Thumbs.db
 
 Backups_Local/
 
+# Python (script thiet ke trong Tools/)
+__pycache__/
+*.py[cod]
