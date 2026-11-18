@@ -2,6 +2,8 @@
 /[Ll]ibrary/
 /[Tt]emp/
 /[Oo]bj/
+[Oo]bj/
+[Bb]in/
 /[Bb]uild/
 /[Bb]uilds/
 /[Ll]ogs/
@@ -36,3 +38,9 @@ sysinfo.txt
 *.app
 .DS_Store
 Thumbs.db
+
+Backups_Local/
+
+# Python (script thiet ke trong Tools/)
+__pycache__/
+*.py[cod]
