@@ -1952,6 +1952,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1723420896418924894, guid: e1df81afa93be7a4a8102258dd5b45c6, type: 3}
+      propertyPath: rotationSpeed
+      value: 1000
+      objectReference: {fileID: 0}
+    - target: {fileID: 1723420896418924894, guid: e1df81afa93be7a4a8102258dd5b45c6, type: 3}
+      propertyPath: patrolSpeed
+      value: 3.2
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3276,7 +3284,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2978471560880097328, guid: 3bb069441697a13438a2fb9058542728, type: 3}
       propertyPath: swingSpeed
-      value: 1.12
+      value: 1.22
       objectReference: {fileID: 0}
     - target: {fileID: 2978471560880097328, guid: 3bb069441697a13438a2fb9058542728, type: 3}
       propertyPath: phaseOffset
