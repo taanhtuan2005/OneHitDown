@@ -25,11 +25,21 @@ namespace OneHitDown.EditorTools
     ///   (Fruit_Melon, countsAsRelic = false) làm mồi nhử phía trên gạch vỡ.
     /// - Ác Mộng Quay Đầu: lối ngầm dưới đất né cưa dẫn thẳng tới Cổng Thần (khóa nếu thiếu Chuối). Khi quay đầu
     ///   từ phải sang trái mà giẫm lên đệm nghiêng, đệm hất ngược người chơi vào lưỡi cưa ray dọc đối diện;
-    ///   phải dùng Nhảy Đôi để bẻ lái.
+    ///   phải dùng Nhảy Đôi để bẻ lái. Ở đoạn cuối, đệm nghiêng đặt NGƯỢC chiều cạnh vực: người chạy tới
+    ///   đáp hụt sẽ bị hất lùi về vực, còn khi quay đầu đó là lối duy nhất để bật ngược lên bậc thang đá.
+    ///
+    /// Chiều dài màn: LevelStart x = 1.5 → Cổng Thần x = 166 (≈ 164.5 tiles, chuẩn Màn 2: 150 – 180 tiles).
+    /// 5 đoạn: Cửa hẻm (0..39) · Hành lang gạch vỡ (43..62) · Đỉnh hẻm (66..99) ·
+    /// Cầu gạch vỡ &amp; bậc thang zíc-zắc (100..127) · Vực cuối &amp; Cổng Thần (128..171).
+    ///
+    /// Âm thanh: dùng AudioManager lồng sẵn trong CoreRig (đã gán đủ 6 BGM); GameManager.levelIndexOverride = 2
+    /// phát bgm_level2_grotto.ogg. Không đặt thêm AudioManager.prefab riêng vì AudioManager là singleton —
+    /// bản thứ hai bị Destroy làm nhạc nền không phát.
     ///
     /// Quy ước tọa độ: 1 unit = 1 tile (PPU 16). Mặt sàn lối ngầm ở y = 0.
-    /// Cân chỉnh theo vật lý chuẩn: gravity 9.81 × 3.5, jumpForce 15.5 (≈ 3.5 tiles), doubleJumpForce 13.5
-    /// (≈ +2.65 tiles), Trampoline bounceForce 20 (thẳng ≈ 5.8 tiles; nghiêng (0.35, 0.94) ≈ 5.1 tiles).
+    /// Cân chỉnh theo vật lý chuẩn: gravity 9.81 × 3.5 (khi rơi × fallGravityMultiplier 1.35), jumpForce 15.5
+    /// (≈ 3.5 tiles), doubleJumpForce 13.5 (≈ +2.65 tiles), Trampoline bounceForce 20 (thẳng ≈ 5.8 tiles;
+    /// nghiêng (0.35, 0.94) ≈ 5.1 tiles).
     /// </summary>
     public static class Level02SceneBuilder
     {
@@ -54,7 +64,6 @@ namespace OneHitDown.EditorTools
 
         // Prefab Paths
         private const string CoreRigPrefabPath = "Assets/Prefabs/CoreRig.prefab";
-        private const string AudioManagerPrefabPath = "Assets/Prefabs/AudioManager.prefab";
         private const string LevelStartPrefabPath = "Assets/Prefabs/LevelStart.prefab";
         private const string ExitGatePrefabPath = "Assets/Prefabs/ExitGate.prefab";
 
@@ -75,6 +84,9 @@ namespace OneHitDown.EditorTools
         private const float TrampolineY = 0.45f;         // Đệm nhún đặt trên mặt sàn y = 0 (khớp Level_01)
         private const float DeathPitBlockY = -0.6875f;   // Khối gạch 22px (1.375 unit) có mặt trên phẳng y = 0
         private static readonly Vector2 TiltedForward = new Vector2(0.35f, 0.937f); // Đệm da thú nghiêng về phía trước
+        private static readonly Vector2 TiltedBack = new Vector2(-0.35f, 0.937f);   // Đệm da thú nghiêng ngược chiều
+        private const float LevelMinX = -2f;             // Mép trái vách chắn đầu màn
+        private const float LevelMaxX = 174f;            // Mép phải vách chắn cuối màn
 
         [MenuItem("Tools/One Hit Down/Build Level 02 Scene", false, 3)]
         public static void BuildScene()
@@ -134,11 +146,11 @@ namespace OneHitDown.EditorTools
 
                 GameObject bgGo = new GameObject("Background_Yellow");
                 bgGo.transform.SetParent(envGroup.transform);
-                bgGo.transform.position = new Vector3(50f, 5f, 5f);
+                bgGo.transform.position = new Vector3((LevelMinX + LevelMaxX) / 2f, 5f, 5f);
                 SpriteRenderer bgSr = bgGo.AddComponent<SpriteRenderer>();
                 bgSr.sprite = bgSprite;
                 bgSr.drawMode = SpriteDrawMode.Tiled;
-                bgSr.size = new Vector2(130f, 35f);
+                bgSr.size = new Vector2(LevelMaxX - LevelMinX + 30f, 35f);
                 bgSr.sortingOrder = -100;
 
                 GameObject camGo = new GameObject("Main Camera");
@@ -169,12 +181,22 @@ namespace OneHitDown.EditorTools
 
                 // Vách chắn hai đầu màn (cao 10 tiles, không cho rơi khỏi bản đồ)
                 BuildTerrainBlock(tg, "Wall_Left", -2, -1, 10f, FloorBottomY, true, true, false, sand);
-                BuildTerrainBlock(tg, "Wall_Right", 100, 101, 10f, FloorBottomY, true, true, false, sand);
+                BuildTerrainBlock(tg, "Wall_Right", 172, 173, 10f, FloorBottomY, true, true, false, sand);
 
-                // LỐI NGẦM (y = 0): 3 đoạn sàn, ngăn cách bởi 2 hố phủ gạch vỡ (x 40..43 và x 63..66)
+                // LỐI NGẦM (y = 0): các đoạn sàn ngăn cách bởi 3 hố phủ gạch vỡ (x 40..43, 63..66, 100..103)
+                // và một vực trống (x 128..134) sau bậc thang đá.
                 BuildTerrainBlock(tg, "Floor_1_Start", 0, 39, 0f, FloorBottomY, false, true, false, sand);
                 BuildTerrainBlock(tg, "Floor_2_Mid", 43, 62, 0f, FloorBottomY, true, true, false, sand);
-                BuildTerrainBlock(tg, "Floor_3_Exit", 66, 99, 0f, FloorBottomY, true, false, false, sand);
+                BuildTerrainBlock(tg, "Floor_3_Canyon", 66, 99, 0f, FloorBottomY, true, true, false, sand);
+                BuildTerrainBlock(tg, "Floor_4_Bridge", 103, 118, 0f, FloorBottomY, true, false, false, sand);
+
+                // BẬC THANG ZÍC-ZẮC (mỗi bậc cao 2 tiles < tầm nhảy 3.5 tiles); bậc cuối có vách đứng bên vực
+                BuildTerrainBlock(tg, "Step_A", 119, 121, 2f, FloorBottomY, false, false, false, sand);
+                BuildTerrainBlock(tg, "Step_B", 122, 124, 4f, FloorBottomY, false, false, false, sand);
+                BuildTerrainBlock(tg, "Step_C", 125, 127, 6f, FloorBottomY, false, true, false, sand);
+
+                // Vực cuối x 128..133 (rộng 6 tiles): đi bộ rơi thẳng xuống vực, phải bật nhảy từ đỉnh Step_C
+                BuildTerrainBlock(tg, "Floor_5_Gate", 134, 171, 0f, FloorBottomY, true, false, false, sand);
 
                 // HỐC ĐÁ TRÊN ĐỈNH HẺM NÚI (bệ treo dày 2 tiles, chứa Chuối)
                 // Hốc 1: x 28..34, mặt y = 6 — lên bằng đệm nghiêng #1 + Nhảy Đôi
@@ -221,16 +243,33 @@ namespace OneHitDown.EditorTools
                 SpawnTrampoline(trampPrefab, trg, "Trampoline_Tilted_3", new Vector3(76.5f, TrampolineY, 0f), TiltedForward);
                 SpawnSaw(sawPrefab, trg, "Saw_Backtrack_3", new Vector3(80f, 1.6f, 0f), PatrolAxis.Vertical, 2.4f, 4f);
 
-                // Vực sâu dưới các hố gạch vỡ: rơi xuống là chết
+                // --- Đoạn 4: Cầu gạch vỡ & bậc thang zíc-zắc ---
+                // Hố gạch vỡ #3 (x 100..103) ngay sau đỉnh hẻm
+                SpawnDeathPit(deathPitPrefab, trg, "DeathPit_Blocks_3A", new Vector3(100.75f, DeathPitBlockY, 0f));
+                SpawnDeathPit(deathPitPrefab, trg, "DeathPit_Blocks_3B", new Vector3(102.25f, DeathPitBlockY, 0f));
+                // Cặp cưa ray sàn chạy so le trên cầu đá trước bậc thang
+                SpawnSaw(sawPrefab, trg, "Saw_Floor_4A", new Vector3(105f, SawFloorY, 0f), PatrolAxis.Horizontal, 3f, 5f);
+                SpawnSaw(sawPrefab, trg, "Saw_Floor_4B", new Vector3(111f, SawFloorY, 0f), PatrolAxis.Horizontal, 3.4f, 6f);
+
+                // --- Đoạn 5: Vực cuối & Cổng Thần ---
+                // Đệm da thú nghiêng NGƯỢC sát mép vực: lối bật về bậc thang khi quay đầu (cần Nhảy Đôi),
+                // đồng thời là bẫy hất lùi về vực nếu người chạy tới đáp hụt.
+                SpawnTrampoline(trampPrefab, trg, "Trampoline_TiltedBack_5", new Vector3(135.5f, TrampolineY, 0f), TiltedBack);
+                SpawnSaw(sawPrefab, trg, "Saw_Floor_5A", new Vector3(141f, SawFloorY, 0f), PatrolAxis.Horizontal, 3f, 6f);
+                // Cưa ray dọc canh lối vào sân Cổng Thần: canh nhịp đi qua khi cưa nâng lên
+                SpawnSaw(sawPrefab, trg, "Saw_Gate_Guard", new Vector3(153f, 1.6f, 0f), PatrolAxis.Vertical, 2.6f, 4f);
+                SpawnSaw(sawPrefab, trg, "Saw_Floor_5B", new Vector3(156f, SawFloorY, 0f), PatrolAxis.Horizontal, 3.4f, 5f);
+
+                // Vực sâu dưới các hố gạch vỡ và vực cuối: rơi xuống là chết
                 GameObject killZone = new GameObject("KillZone_Abyss");
                 killZone.transform.SetParent(trg);
-                killZone.transform.position = new Vector3(50f, -7.5f, 0f);
+                killZone.transform.position = new Vector3((LevelMinX + LevelMaxX) / 2f, -7.5f, 0f);
                 killZone.tag = "Hazard";
                 int trapsLayer = LayerMask.NameToLayer("Traps");
                 killZone.layer = trapsLayer >= 0 ? trapsLayer : 10;
                 BoxCollider2D killCol = killZone.AddComponent<BoxCollider2D>();
                 killCol.isTrigger = true;
-                killCol.size = new Vector2(110f, 4f);
+                killCol.size = new Vector2(LevelMaxX - LevelMinX + 10f, 4f);
                 killZone.AddComponent<KillZone>();
 
                 EditorUtility.DisplayProgressBar("One Hit Down", "Đặt Chuối cổ vật, Dưa hấu và Cổng Thần...", 0.7f);
@@ -255,7 +294,7 @@ namespace OneHitDown.EditorTools
                 {
                     GameObject exitGo = (GameObject)PrefabUtility.InstantiatePrefab(exitPrefab);
                     exitGo.transform.SetParent(ig);
-                    exitGo.transform.position = new Vector3(96f, 0f, 0f);
+                    exitGo.transform.position = new Vector3(166f, 0f, 0f);
                     exitGate = exitGo.GetComponentInChildren<ExitGate>(true);
                 }
 
@@ -273,15 +312,8 @@ namespace OneHitDown.EditorTools
                 // 7. 00. CORE MANAGERS
                 GameObject coreGroup = new GameObject("--- 00. CORE MANAGERS ---");
 
+                // AudioManager lấy từ bản lồng sẵn trong CoreRig (singleton duy nhất, đã gán đủ 6 BGM).
                 AudioManager audioMgr = null;
-                GameObject audioPrefab = LoadPrefab(AudioManagerPrefabPath);
-                if (audioPrefab != null)
-                {
-                    GameObject audioGo = (GameObject)PrefabUtility.InstantiatePrefab(audioPrefab);
-                    audioGo.transform.SetParent(coreGroup.transform);
-                    audioMgr = audioGo.GetComponent<AudioManager>();
-                }
-
                 GameManager gm = null;
                 HUDController hud = null;
                 PauseMenu pauseMenu = null;
@@ -295,6 +327,12 @@ namespace OneHitDown.EditorTools
                     hud = coreRigGo.GetComponentInChildren<HUDController>(true);
                     pauseMenu = coreRigGo.GetComponentInChildren<PauseMenu>(true);
                     iris = coreRigGo.GetComponentInChildren<IrisTransition>(true);
+                    audioMgr = coreRigGo.GetComponentInChildren<AudioManager>(true);
+                }
+
+                if (audioMgr == null)
+                {
+                    Debug.LogWarning($"{LogTag} CoreRig không chứa AudioManager — Màn 2 sẽ không có nhạc nền.");
                 }
 
                 if (gm != null)
