@@ -63,10 +63,19 @@ namespace OneHitDown.Level
 
         private void OnCollisionEnter2D(Collision2D col)
         {
-            if (col.collider.CompareTag("Player") && col.collider.TryGetComponent(out PlayerController p))
+            TryRegisterPassenger(col);
+        }
+
+        private void OnCollisionStay2D(Collision2D col)
+        {
+            TryRegisterPassenger(col);
+        }
+
+        private void TryRegisterPassenger(Collision2D col)
+        {
+            if (col.contactCount > 0 && col.GetContact(0).normal.y < -0.5f && col.collider.CompareTag("Player"))
             {
-                // Chỉ nhận khi player đứng trên mặt bệ (normal hướng lên)
-                if (col.contactCount > 0 && col.GetContact(0).normal.y < -0.5f)
+                if (col.collider.TryGetComponent(out PlayerController p))
                 {
                     passengers.Add(p);
                 }
