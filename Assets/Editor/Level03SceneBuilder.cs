@@ -443,8 +443,8 @@ namespace OneHitDown.EditorTools
             CreateSteelBlock2x2("P1_P2_ArchSteelBlock", 36f, 14f, pillarsGroup.transform, withCollider: true);
             CreateSteelBlock2x2("P2_P3_ArchSteelBlock", 76f, 14f, pillarsGroup.transform, withCollider: true);
 
-            // Trụ thép đỡ Cối xay gió ngang ở đầu Phần 4 (X = 119..120, Y = 8..16)
-            CreateSteelPillar("P4_WindTunnelPillar", 119f, 8f, 6f, pillarsGroup.transform, withCollider: false);
+            // Trụ thép đỡ Cối xay gió ngang ở đầu Phần 4 (X = 119..120, Y = 8..12, cắt 2 tiles phía trên để chừa lối nhảy qua Y = 12..14)
+            CreateSteelPillar("P4_WindTunnelPillar", 119f, 8f, 4f, pillarsGroup.transform, withCollider: false);
             CreateSteelBlock2x2("P4_WindTunnelCap", 118f, 14f, pillarsGroup.transform, withCollider: true);
 
             CreateSteelBlock2x2("P4_P5_ArchSteelBlock", 156f, 14f, pillarsGroup.transform, withCollider: true);
@@ -943,12 +943,12 @@ namespace OneHitDown.EditorTools
             CreateSpikeRowFromLeft("P4_CeilingSpikes",     136f, 15.5f, 8, parent, spikesSprite, pointingDown: true);
             CreateSpikeRowFromLeft("P5_CeilingSpikes",     177f, 16.5f, 8, parent, spikesSprite, pointingDown: true);
 
-            // 2. CHÔNG GAI ĐÁY HỐ SÀN & TRÊN NỬA PHẢI 3 KHỐI BĂNG PHẦN 4:
+            // 2. CHÔNG GAI ĐÁY HỐ SÀN & TRÊN NỬA PHẢI 3 KHỐI BĂNG PHẦN 4 (đã bỏ Spike_0 đầu mỗi phiến băng, còn Spike_1 & Spike_2):
             CreateSpikeRowFromLeft("P1_FloorSpikes_Pit1",   33f,  1.5f, 4, parent, spikesSprite, pointingDown: false);
             CreateSpikeRowFromLeft("P2_FloorSpikes_Pit2",   56f,  1.5f, 4, parent, spikesSprite, pointingDown: false);
-            CreateSpikeRowFromLeft("P4_IceSlope1_Spikes", 125.5f, 8.5f, 3, parent, spikesSprite, pointingDown: false, customWidth: 3.5f);
-            CreateSpikeRowFromLeft("P4_IceSlope2_Spikes", 132.5f, 6.5f, 3, parent, spikesSprite, pointingDown: false, customWidth: 3.5f);
-            CreateSpikeRowFromLeft("P4_IceSlope3_Spikes", 139.0f, 4.5f, 3, parent, spikesSprite, pointingDown: false, customWidth: 3.0f);
+            CreateSpikeRowFromLeft("P4_IceSlope1_Spikes", 125.5f, 8.5f, 3, parent, spikesSprite, pointingDown: false, customWidth: 3.5f, skipFirstSpike: true);
+            CreateSpikeRowFromLeft("P4_IceSlope2_Spikes", 132.5f, 6.5f, 3, parent, spikesSprite, pointingDown: false, customWidth: 3.5f, skipFirstSpike: true);
+            CreateSpikeRowFromLeft("P4_IceSlope3_Spikes", 139.0f, 4.5f, 3, parent, spikesSprite, pointingDown: false, customWidth: 3.0f, skipFirstSpike: true);
 
             // 3. VẠC LỬA CHU KỲ (2s tắt - 0.35s báo - 1s bật, đặt âm trong hốc đá sao cho mặt vạc khớp mặt sàn):
             // Phần 1: Hốc 2 Vạc Lửa (X = 18.5 & 19.5, tâm Y = 4.0 -> đế vạc nằm ở Y = 3..4, ngọn lửa ở Y = 4..5)
@@ -987,7 +987,7 @@ namespace OneHitDown.EditorTools
             CreateSpikedBallPendulum(parent, new Vector3(181.0f, 16.8f, 0f), length: 9.8f);
         }
 
-        private static void CreateSpikeRowFromLeft(string name, float xLeft, float yCenter, int count, Transform parent, Sprite sprite, bool pointingDown, float customWidth = -1f)
+        private static void CreateSpikeRowFromLeft(string name, float xLeft, float yCenter, int count, Transform parent, Sprite sprite, bool pointingDown, float customWidth = -1f, bool skipFirstSpike = false)
         {
             float totalWidth = customWidth > 0f ? customWidth : count * 1.0f;
             GameObject row = new GameObject(name);
@@ -1000,7 +1000,8 @@ namespace OneHitDown.EditorTools
             row.tag = "Hazard";
 
             float startX = -((count - 1) * 0.5f);
-            for (int i = 0; i < count; i++)
+            int firstIndex = skipFirstSpike ? 1 : 0;
+            for (int i = firstIndex; i < count; i++)
             {
                 GameObject sGo = new GameObject($"Spike_{i}");
                 sGo.transform.SetParent(row.transform, false);
@@ -1016,10 +1017,12 @@ namespace OneHitDown.EditorTools
                 sr.sortingOrder = 5;
             }
 
+            int activeCount = count - firstIndex;
+            float offsetX = skipFirstSpike ? 0.5f : 0f;
             BoxCollider2D col = row.AddComponent<BoxCollider2D>();
             col.isTrigger = true;
-            col.size = new Vector2(count * 1.0f, 0.55f);
-            col.offset = new Vector2(0f, pointingDown ? 0.15f : -0.15f);
+            col.size = new Vector2(activeCount * 1.0f, 0.55f);
+            col.offset = new Vector2(offsetX, pointingDown ? 0.15f : -0.15f);
         }
 
         private static void CreateFireTrap(Transform parent, string name, Vector3 pos)
@@ -1088,15 +1091,15 @@ namespace OneHitDown.EditorTools
             CreateCollectible(parent, "Berry_Bonus_2", new Vector3(114.0f, 11.8f, 0f), strawberrySprite, isRelic: false);
 
             // 4. BỆ NÂNG DI ĐỘNG (MovingPlatform) KÈM ĐƯỜNG RAY MẮT XÍCH (Chain.png) KHỚP 100% ẢNH DEMO:
-            // Bệ Nâng Ngang X ở Phần 3: Ray xích từ X = 84.75 -> 94.5 tại Y = 5.5; Bệ đặt tại chính giữa (89.5, 5.5), ghép 2 đốt 32x8 nguyên vẹn (rộng 4.0 units)
+            // Bệ Nâng Ngang X ở Phần 3: Ray xích từ X = 84.75 -> 94.5 tại Y = 5.5; Bệ đặt tại (89.5, 5.5), tâm bệ đi hết 2 đầu ray xích (startOffset = -4.75, moveOffset = 9.75)
             CreateMovingPlatformWithChainTrack(
                 parent,
                 "P3_MovingPlatform_X",
                 initialPos: new Vector3(89.5f, 5.5f, 0f),
                 trackStart: new Vector3(84.75f, 5.5f, 0f),
                 trackEnd: new Vector3(94.5f, 5.5f, 0f),
-                startOffset: new Vector2(-3.0f, 0f),
-                moveOffset: new Vector2(6.0f, 0f),
+                startOffset: new Vector2(-4.75f, 0f),
+                moveOffset: new Vector2(9.75f, 0f),
                 speed: 3.5f,
                 chainSprite: chainSprite);
 
