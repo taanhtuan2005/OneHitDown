@@ -124,7 +124,7 @@ namespace OneHitDown.EditorTools
             try
             {
                 // ---- Đếm cấu trúc YAML ----
-                metrics.Add(new Metric("Tổng GameObject", 251, CountYaml(yaml, @"^--- !u!1 &")));
+                metrics.Add(new Metric("Tổng GameObject", 248, CountYaml(yaml, @"^--- !u!1 &")));
                 metrics.Add(new Metric("Tổng PrefabInstance", 79, CountYaml(yaml, @"^--- !u!1001 &")));
 
                 foreach (PrefabExpectation expectation in PrefabExpectations)

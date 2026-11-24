@@ -279,9 +279,10 @@ namespace OneHitDown.Player
 
             CheckGround();
 
-            // Rơi nhanh hơn lúc nhảy lên: đang đi xuống thì tăng trọng lực để cú nhảy dứt khoát,
-            // lúc bay lên vẫn giữ gravityScale gốc để độ cao nhảy không đổi.
-            rb.gravityScale = rb.linearVelocity.y < 0f
+            // Rơi nhanh hơn lúc nhảy lên: đang đi xuống (so với bệ) thì tăng trọng lực để cú nhảy dứt khoát,
+            // lúc bay lên hoặc đứng trên bệ vẫn giữ gravityScale gốc để độ cao nhảy không đổi.
+            float vyRel = rb.linearVelocity.y - platformVelocity.y;
+            rb.gravityScale = (!isGrounded && vyRel < 0f)
                 ? defaultGravityScale * fallGravityMultiplier
                 : defaultGravityScale;
 
@@ -336,6 +337,12 @@ namespace OneHitDown.Player
 
             // Áp dụng ngoại lực dọc (từ quạt gió đứng hoặc dây kéo) có bù trừ để tránh tích tụ vô hạn
             float currentVy = rb.linearVelocity.y - appliedExternalY;
+            if (isGrounded && coyoteCounter > 0f && platformVelocity.y < -0.01f && (currentVy - platformVelocity.y) <= 0.2f)
+            {
+                // Khi đứng trên bệ nâng đang đi xuống, kéo nhân vật bám sát mặt bệ để không bị hẫng chân rơi tự do
+                currentVy = platformVelocity.y - 0.5f;
+            }
+
             float newVy = currentVy + externalVelocity.y;
             appliedExternalY = externalVelocity.y;
 
@@ -543,10 +550,20 @@ namespace OneHitDown.Player
                 checkPos = (Vector2)transform.position + Vector2.down * 0.5f;
             }
 
-            Collider2D hit = Physics2D.OverlapBox(checkPos, groundCheckSize, 0f, groundLayer);
-            bool wasGrounded = isGrounded;
+            Vector2 checkSize = groundCheckSize;
+            if (platformVelocity.y < -0.01f)
+            {
+                // Khi bệ đi xuống, mở rộng nhẹ vùng quét xuống dưới để bù độ lệch thứ tự FixedUpdate giữa bệ và Player
+                float downDrop = Mathf.Abs(platformVelocity.y) * Time.fixedDeltaTime + 0.08f;
+                checkPos.y -= downDrop * 0.5f;
+                checkSize.y += downDrop;
+            }
 
-            if (hit != null && rb != null && rb.linearVelocity.y <= 0.2f)
+            Collider2D hit = Physics2D.OverlapBox(checkPos, checkSize, 0f, groundLayer);
+            bool wasGrounded = isGrounded;
+            float relativeVy = rb != null ? (rb.linearVelocity.y - Mathf.Max(0f, platformVelocity.y)) : 0f;
+
+            if (hit != null && rb != null && relativeVy <= 0.2f)
             {
                 isGrounded = true;
                 coyoteCounter = coyoteTime;
@@ -618,7 +635,9 @@ namespace OneHitDown.Player
         {
             if (rb != null)
             {
+                isGrounded = false;
                 appliedExternalY = 0f;
+                platformVelocity = new Vector2(platformVelocity.x, 0f);
                 rb.linearVelocity = new Vector2(rb.linearVelocity.x, force);
             }
         }
@@ -630,7 +649,7 @@ namespace OneHitDown.Player
                 Vector2 v = rb.linearVelocity;
                 anim.SetFloat(AnimSpeed, Mathf.Abs(v.x - platformVelocity.x));
                 anim.SetBool(AnimIsGrounded, isGrounded);
-                anim.SetFloat(AnimVerticalVelocity, v.y);
+                anim.SetFloat(AnimVerticalVelocity, isGrounded ? 0f : (v.y - platformVelocity.y));
             }
 
             if (spriteRenderer == null)
@@ -657,8 +676,10 @@ namespace OneHitDown.Player
         /// </summary>
         public void GrantDoubleJumpAndBoost(Vector2 boostVelocity)
         {
+            isGrounded = false;
             canDoubleJump = true;
             coyoteCounter = 0f;
+            platformVelocity = Vector2.zero;
             if (rb != null)
             {
                 rb.linearVelocity = boostVelocity;
@@ -699,6 +720,17 @@ namespace OneHitDown.Player
         /// </summary>
         public void SetPlatformVelocity(Vector2 platVel)
         {
+            if (rb != null && isGrounded && coyoteCounter > 0f)
+            {
+                float relVy = rb.linearVelocity.y - Mathf.Max(0f, platformVelocity.y);
+                if (relVy <= 0.2f)
+                {
+                    float vx = rb.linearVelocity.x - platformVelocity.x + platVel.x;
+                    float vy = platVel.y < -0.01f ? (platVel.y - 0.5f + appliedExternalY) : rb.linearVelocity.y;
+                    rb.linearVelocity = new Vector2(vx, vy);
+                }
+            }
+
             platformVelocity = platVel;
         }
 

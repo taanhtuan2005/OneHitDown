@@ -138,31 +138,31 @@ namespace OneHitDown.EditorTools
                 bgImg.type = Image.Type.Tiled;
                 bgImg.color = Color.white;
 
-                // 4. Khung chính MainBox (CharacterPanel)
+                // 4. Khung chính MainBox (CharacterPanel - 5 tầng tách biệt 1220x840)
                 GameObject mainBoxGo = CreateUIObject("CharacterPanel", canvasGo.transform);
                 RectTransform mainBoxRect = mainBoxGo.GetComponent<RectTransform>();
-                mainBoxRect.sizeDelta = new Vector2(1080, 740);
+                mainBoxRect.sizeDelta = new Vector2(1220, 840);
                 mainBoxRect.anchoredPosition = Vector2.zero;
 
                 // Viền vàng ngoài (#FFDE00)
                 Image borderImg = mainBoxGo.AddComponent<Image>();
-                borderImg.color = new Color(1f, 0.87f, 0f); // #FFDE00
+                borderImg.color = new Color(1f, 0.85f, 0f); // #FFDE00
 
-                // Lõi xám than trong (#14141E)
+                // Lõi xám than trong (#121421)
                 GameObject innerBoxGo = CreateUIObject("InnerBox", mainBoxGo.transform);
                 RectTransform innerRect = innerBoxGo.GetComponent<RectTransform>();
                 innerRect.anchorMin = Vector2.zero;
                 innerRect.anchorMax = Vector2.one;
-                innerRect.offsetMin = new Vector2(5, 5);
-                innerRect.offsetMax = new Vector2(-5, -5);
+                innerRect.offsetMin = new Vector2(6, 6);
+                innerRect.offsetMax = new Vector2(-6, -6);
                 Image innerImg = innerBoxGo.AddComponent<Image>();
-                innerImg.color = new Color(0.08f, 0.08f, 0.12f); // #14141E
+                innerImg.color = new Color(0.07f, 0.08f, 0.13f);
 
                 // 5. Tiêu đề "ONE HIT DOWN"
                 GameObject titleGo = CreateUIObject("Title", innerBoxGo.transform);
                 RectTransform titleRect = titleGo.GetComponent<RectTransform>();
-                titleRect.sizeDelta = new Vector2(900, 70);
-                titleRect.anchoredPosition = new Vector2(0, 290);
+                titleRect.sizeDelta = new Vector2(700, 68);
+                titleRect.anchoredPosition = new Vector2(0, 362);
                 TextMeshProUGUI titleText = titleGo.AddComponent<TextMeshProUGUI>();
                 titleText.font = fontVT323;
                 titleText.text = "ONE HIT DOWN";
@@ -175,10 +175,10 @@ namespace OneHitDown.EditorTools
                 // Nút 1P
                 GameObject btn1PGo = CreateUIObject("Button_SinglePlayer", innerBoxGo.transform);
                 RectTransform btn1PRect = btn1PGo.GetComponent<RectTransform>();
-                btn1PRect.sizeDelta = new Vector2(340, 50);
-                btn1PRect.anchoredPosition = new Vector2(-185, 215);
+                btn1PRect.sizeDelta = new Vector2(430, 48);
+                btn1PRect.anchoredPosition = new Vector2(-225, 210);
                 Image btn1PImg = btn1PGo.AddComponent<Image>();
-                btn1PImg.color = new Color(0f, 0.95f, 1f, 1f); // Cyan
+                btn1PImg.color = new Color(0f, 0.92f, 1f, 1f); // Cyan
                 Button btn1P = btn1PGo.AddComponent<Button>();
 
                 GameObject txt1PGo = CreateUIObject("Text", btn1PGo.transform);
@@ -189,19 +189,19 @@ namespace OneHitDown.EditorTools
                 txt1PRect.offsetMax = Vector2.zero;
                 TextMeshProUGUI txt1P = txt1PGo.AddComponent<TextMeshProUGUI>();
                 txt1P.font = fontVT323;
-                txt1P.text = "1 NGƯỜI CHƠI (1P)";
-                txt1P.fontSize = 28;
-                txt1P.color = new Color(0.08f, 0.08f, 0.12f, 1f);
+                txt1P.text = "1 NGƯỜI CHƠI (1P SOLO)";
+                txt1P.fontSize = 25;
+                txt1P.color = new Color(0.06f, 0.07f, 0.12f, 1f);
                 txt1P.alignment = TextAlignmentOptions.Center;
                 txt1P.raycastTarget = false;
 
                 // Nút 2P
                 GameObject btn2PGo = CreateUIObject("Button_TwoPlayer", innerBoxGo.transform);
                 RectTransform btn2PRect = btn2PGo.GetComponent<RectTransform>();
-                btn2PRect.sizeDelta = new Vector2(340, 50);
-                btn2PRect.anchoredPosition = new Vector2(185, 215);
+                btn2PRect.sizeDelta = new Vector2(430, 48);
+                btn2PRect.anchoredPosition = new Vector2(225, 210);
                 Image btn2PImg = btn2PGo.AddComponent<Image>();
-                btn2PImg.color = new Color(0.18f, 0.18f, 0.25f, 1f); // Dimmed
+                btn2PImg.color = new Color(0.15f, 0.16f, 0.24f, 1f); // Dimmed
                 Button btn2P = btn2PGo.AddComponent<Button>();
 
                 GameObject txt2PGo = CreateUIObject("Text", btn2PGo.transform);
@@ -213,26 +213,26 @@ namespace OneHitDown.EditorTools
                 TextMeshProUGUI txt2P = txt2PGo.AddComponent<TextMeshProUGUI>();
                 txt2P.font = fontVT323;
                 txt2P.text = "2 NGƯỜI CHƠI (2P CO-OP)";
-                txt2P.fontSize = 28;
-                txt2P.color = new Color(0.7f, 0.7f, 0.8f, 1f);
+                txt2P.fontSize = 25;
+                txt2P.color = new Color(0.75f, 0.78f, 0.88f, 1f);
                 txt2P.alignment = TextAlignmentOptions.Center;
                 txt2P.raycastTarget = false;
 
                 // Nhãn mô tả chế độ & phím điều khiển
                 GameObject modeLabelGo = CreateUIObject("ModeLabel", innerBoxGo.transform);
                 RectTransform modeLabelRect = modeLabelGo.GetComponent<RectTransform>();
-                modeLabelRect.sizeDelta = new Vector2(950, 36);
+                modeLabelRect.sizeDelta = new Vector2(960, 32);
                 modeLabelRect.anchoredPosition = new Vector2(0, 160);
                 TextMeshProUGUI modeLabelTxt = modeLabelGo.AddComponent<TextMeshProUGUI>();
                 modeLabelTxt.font = fontVT323;
-                modeLabelTxt.text = "<color=#00FFFF>[1 NGƯỜI CHƠI]</color>  Điều khiển: A/D/W hoặc Mũi tên, Space nhảy";
-                modeLabelTxt.fontSize = 24;
+                modeLabelTxt.text = "<color=#00F0FF>[1P SOLO]</color>  Di chuyển: A/D hoặc Mũi tên  |  Nhảy / Nhảy đôi: W / Space / Lên";
+                modeLabelTxt.fontSize = 21;
                 modeLabelTxt.color = Color.white;
                 modeLabelTxt.alignment = TextAlignmentOptions.Center;
                 modeLabelTxt.raycastTarget = false;
 
-                // 7. KHU VỰC 4 THẺ NHÂN VẬT (CHỌN SKIN)
-                float[] posX = { -320, -107, 107, 320 };
+                // 7. KHU VỰC 4 THẺ NHÂN VẬT (256x268 — 4 ngăn dọc không chồng lấn)
+                float[] posX = { -420, -140, 140, 420 };
                 string[] defaultLabels = { "NINJA FROG", "VIRTUAL GUY", "PINK MAN", "MASK DUDE" };
 
                 Button[] cardBtns = new Button[4];
@@ -247,19 +247,19 @@ namespace OneHitDown.EditorTools
                     // Thẻ nhân vật root (có Image làm nền và Button để bắt click trực tiếp)
                     GameObject cardGo = CreateUIObject($"CharacterCard_{i}", innerBoxGo.transform);
                     RectTransform cardRect = cardGo.GetComponent<RectTransform>();
-                    cardRect.sizeDelta = new Vector2(196, 230);
-                    cardRect.anchoredPosition = new Vector2(posX[i], 15);
+                    cardRect.sizeDelta = new Vector2(256, 268);
+                    cardRect.anchoredPosition = new Vector2(posX[i], -6);
                     Image cardBgImg = cardGo.AddComponent<Image>();
-                    cardBgImg.color = new Color(0.12f, 0.12f, 0.18f); // #1E1E2E
+                    cardBgImg.color = new Color(0.11f, 0.12f, 0.19f);
                     Button cardBtn = cardGo.AddComponent<Button>();
                     cardBtn.targetGraphic = cardBgImg;
                     cardBtns[i] = cardBtn;
 
                     Outline outline = cardGo.AddComponent<Outline>();
-                    outline.effectDistance = new Vector2(5, 5);
+                    outline.effectDistance = new Vector2(4, 4);
                     outline.useGraphicAlpha = false;
                     outline.enabled = (i == 0);
-                    outline.effectColor = new Color(0f, 1f, 1f, 1f);
+                    outline.effectColor = new Color(0f, 0.95f, 1f, 1f);
 
                     // Viền P1 (Cyan)
                     GameObject p1MarkGo = CreateUIObject("P1_Mark", cardGo.transform);
@@ -269,7 +269,7 @@ namespace OneHitDown.EditorTools
                     p1MarkRect.offsetMin = new Vector2(2, 2);
                     p1MarkRect.offsetMax = new Vector2(-2, -2);
                     Image p1MarkImg = p1MarkGo.AddComponent<Image>();
-                    p1MarkImg.color = new Color(0f, 0.95f, 1f, 0.35f);
+                    p1MarkImg.color = new Color(0f, 0.95f, 1f, 0.25f);
                     p1MarkImg.raycastTarget = false;
                     p1Marks[i] = p1MarkGo;
 
@@ -281,25 +281,25 @@ namespace OneHitDown.EditorTools
                     p2MarkRect.offsetMin = new Vector2(2, 2);
                     p2MarkRect.offsetMax = new Vector2(-2, -2);
                     Image p2MarkImg = p2MarkGo.AddComponent<Image>();
-                    p2MarkImg.color = new Color(1f, 0.6f, 0f, 0.35f);
+                    p2MarkImg.color = new Color(1f, 0.6f, 0f, 0.25f);
                     p2MarkImg.raycastTarget = false;
                     p2Marks[i] = p2MarkGo;
 
-                    // Sprite nhân vật phóng to (ở nửa trên thẻ)
+                    // Sprite nhân vật phóng to
                     GameObject charImgGo = CreateUIObject("Sprite", cardGo.transform);
                     RectTransform charImgRect = charImgGo.GetComponent<RectTransform>();
-                    charImgRect.sizeDelta = new Vector2(96, 96);
-                    charImgRect.anchoredPosition = new Vector2(0, 45);
+                    charImgRect.sizeDelta = new Vector2(84, 84);
+                    charImgRect.anchoredPosition = new Vector2(0, 34);
                     Image charImg = charImgGo.AddComponent<Image>();
                     charImg.sprite = charSprites[i];
                     charImg.preserveAspect = true;
                     charImg.raycastTarget = false;
 
-                    // Nhãn tên nhân vật ở giữa
+                    // Nhãn tên nhân vật tách biệt bên dưới sprite
                     GameObject labelGo = CreateUIObject("Label", cardGo.transform);
                     RectTransform labelRect = labelGo.GetComponent<RectTransform>();
-                    labelRect.sizeDelta = new Vector2(185, 26);
-                    labelRect.anchoredPosition = new Vector2(0, -18);
+                    labelRect.sizeDelta = new Vector2(224, 30);
+                    labelRect.anchoredPosition = new Vector2(0, -46);
                     TextMeshProUGUI labelTxt = labelGo.AddComponent<TextMeshProUGUI>();
                     labelTxt.font = fontVT323;
                     labelTxt.text = defaultLabels[i];
@@ -312,16 +312,16 @@ namespace OneHitDown.EditorTools
                     // Container 2 nút P1 và P2 ở đáy thẻ
                     GameObject btnsBoxGo = CreateUIObject("ButtonsContainer", cardGo.transform);
                     RectTransform btnsBoxRect = btnsBoxGo.GetComponent<RectTransform>();
-                    btnsBoxRect.sizeDelta = new Vector2(185, 38);
-                    btnsBoxRect.anchoredPosition = new Vector2(0, -68);
+                    btnsBoxRect.sizeDelta = new Vector2(232, 42);
+                    btnsBoxRect.anchoredPosition = new Vector2(0, -100);
 
                     // Nút [ P1 ]
                     GameObject p1BtnGo = CreateUIObject("Btn_P1", btnsBoxGo.transform);
                     RectTransform p1BtnRect = p1BtnGo.GetComponent<RectTransform>();
-                    p1BtnRect.sizeDelta = new Vector2(78, 34);
-                    p1BtnRect.anchoredPosition = new Vector2(-44, 0);
+                    p1BtnRect.sizeDelta = new Vector2(106, 38);
+                    p1BtnRect.anchoredPosition = new Vector2(-55, 0);
                     Image p1BtnImg = p1BtnGo.AddComponent<Image>();
-                    p1BtnImg.color = (i == 0) ? new Color(0f, 0.95f, 1f, 1f) : new Color(0.18f, 0.18f, 0.25f, 1f);
+                    p1BtnImg.color = (i == 0) ? new Color(0f, 0.92f, 1f, 1f) : new Color(0.16f, 0.17f, 0.26f, 1f);
                     Button p1Btn = p1BtnGo.AddComponent<Button>();
                     p1Btn.targetGraphic = p1BtnImg;
                     p1Btns[i] = p1Btn;
@@ -335,7 +335,7 @@ namespace OneHitDown.EditorTools
                     TextMeshProUGUI p1Txt = p1TxtGo.AddComponent<TextMeshProUGUI>();
                     p1Txt.font = fontVT323;
                     p1Txt.text = "<b>P1</b>";
-                    p1Txt.fontSize = 24;
+                    p1Txt.fontSize = 22;
                     p1Txt.color = Color.white;
                     p1Txt.alignment = TextAlignmentOptions.Center;
                     p1Txt.raycastTarget = false;
@@ -343,10 +343,10 @@ namespace OneHitDown.EditorTools
                     // Nút [ P2 ]
                     GameObject p2BtnGo = CreateUIObject("Btn_P2", btnsBoxGo.transform);
                     RectTransform p2BtnRect = p2BtnGo.GetComponent<RectTransform>();
-                    p2BtnRect.sizeDelta = new Vector2(78, 34);
-                    p2BtnRect.anchoredPosition = new Vector2(44, 0);
+                    p2BtnRect.sizeDelta = new Vector2(106, 38);
+                    p2BtnRect.anchoredPosition = new Vector2(55, 0);
                     Image p2BtnImg = p2BtnGo.AddComponent<Image>();
-                    p2BtnImg.color = (i == 1) ? new Color(1f, 0.6f, 0f, 1f) : new Color(0.18f, 0.18f, 0.25f, 1f);
+                    p2BtnImg.color = (i == 1) ? new Color(1f, 0.6f, 0.05f, 1f) : new Color(0.16f, 0.17f, 0.26f, 1f);
                     Button p2Btn = p2BtnGo.AddComponent<Button>();
                     p2Btn.targetGraphic = p2BtnImg;
                     p2Btns[i] = p2Btn;
@@ -360,16 +360,24 @@ namespace OneHitDown.EditorTools
                     TextMeshProUGUI p2Txt = p2TxtGo.AddComponent<TextMeshProUGUI>();
                     p2Txt.font = fontVT323;
                     p2Txt.text = "<b>P2</b>";
-                    p2Txt.fontSize = 24;
+                    p2Txt.fontSize = 22;
                     p2Txt.color = Color.white;
                     p2Txt.alignment = TextAlignmentOptions.Center;
                     p2Txt.raycastTarget = false;
                 }
 
-                // 8. Dãy 4 nút hành động: PLAY, LEVELS, SETTINGS, AUDIO
-                float[] btnX = { -270, -90, 90, 270 };
+                // 8. Dãy 4 nút hành động ngang (256x84) có nhãn nằm bên trong nút
+                float[] btnX = { -420, -140, 140, 420 };
                 Sprite[] actionIcons = { playIcon, levelsIcon, settingsIcon, audioOnIcon };
                 string[] actionNames = { "PLAY", "LEVELS", "SETTINGS", "AUDIO" };
+                string[] actionLabels = { "BẮT ĐẦU", "CHỌN MÀN", "CÀI ĐẶT", "AUDIO\n100%" };
+                Color[] actionColors =
+                {
+                    new Color(0.14f, 0.76f, 0.34f, 1f),
+                    new Color(0.16f, 0.48f, 0.88f, 1f),
+                    new Color(0.42f, 0.32f, 0.86f, 1f),
+                    new Color(0.86f, 0.54f, 0.10f, 1f)
+                };
 
                 Button[] actionBtns = new Button[4];
                 Image audioIconImg = null;
@@ -378,19 +386,27 @@ namespace OneHitDown.EditorTools
                 {
                     GameObject actionGo = CreateUIObject($"ActionBtn_{actionNames[i]}", innerBoxGo.transform);
                     RectTransform actionRect = actionGo.GetComponent<RectTransform>();
-                    actionRect.sizeDelta = new Vector2(100, 100);
-                    actionRect.anchoredPosition = new Vector2(btnX[i], -185);
+                    actionRect.sizeDelta = new Vector2(256, 84);
+                    actionRect.anchoredPosition = new Vector2(btnX[i], -268);
                     Image btnBg = actionGo.AddComponent<Image>();
-                    btnBg.color = (i == 0) ? new Color(0.2f, 0.9f, 0.3f, 1f) : Color.white;
+                    btnBg.color = actionColors[i];
                     btnBg.raycastTarget = true;
                     Button btn = actionGo.AddComponent<Button>();
                     btn.targetGraphic = btnBg;
                     actionBtns[i] = btn;
 
-                    // Icon đen ở giữa
-                    GameObject iconGo = CreateUIObject("Icon", actionGo.transform);
+                    // Badge sáng cho Icon bên trái
+                    GameObject badgeGo = CreateUIObject("IconBadge", actionGo.transform);
+                    RectTransform badgeRect = badgeGo.GetComponent<RectTransform>();
+                    badgeRect.sizeDelta = new Vector2(56, 56);
+                    badgeRect.anchoredPosition = new Vector2(-78, 0);
+                    Image badgeImg = badgeGo.AddComponent<Image>();
+                    badgeImg.color = new Color(0.95f, 0.96f, 1f, 0.95f);
+                    badgeImg.raycastTarget = false;
+
+                    GameObject iconGo = CreateUIObject("Icon", badgeGo.transform);
                     RectTransform iconRect = iconGo.GetComponent<RectTransform>();
-                    iconRect.sizeDelta = new Vector2(56, 56);
+                    iconRect.sizeDelta = new Vector2(38, 38);
                     iconRect.anchoredPosition = Vector2.zero;
                     Image iconImg = iconGo.AddComponent<Image>();
                     iconImg.sprite = actionIcons[i];
@@ -400,34 +416,34 @@ namespace OneHitDown.EditorTools
 
                     if (i == 3) audioIconImg = iconImg;
 
-                    // Nhãn chữ bên dưới nút
+                    // Nhãn chữ bên phải TRONG nút
                     GameObject actionLabelGo = CreateUIObject("Text", actionGo.transform);
                     RectTransform actionLabelRect = actionLabelGo.GetComponent<RectTransform>();
-                    actionLabelRect.sizeDelta = new Vector2(140, 32);
-                    actionLabelRect.anchoredPosition = new Vector2(0, -75);
+                    actionLabelRect.sizeDelta = new Vector2(154, 68);
+                    actionLabelRect.anchoredPosition = new Vector2(36, 0);
                     TextMeshProUGUI actionLabelTxt = actionLabelGo.AddComponent<TextMeshProUGUI>();
                     actionLabelTxt.font = fontVT323;
-                    actionLabelTxt.text = actionNames[i];
-                    actionLabelTxt.fontSize = 28;
+                    actionLabelTxt.text = actionLabels[i];
+                    actionLabelTxt.fontSize = 26;
                     actionLabelTxt.color = Color.white;
                     actionLabelTxt.alignment = TextAlignmentOptions.Center;
                     actionLabelTxt.raycastTarget = false;
                 }
 
-                // 9. Feedback Label (thông báo lỗi/hướng dẫn)
+                // 9. Feedback Label tách biệt ở giữa hàng thẻ và hàng nút
                 GameObject fbGo = CreateUIObject("FeedbackLabel", innerBoxGo.transform);
                 RectTransform fbRect = fbGo.GetComponent<RectTransform>();
-                fbRect.sizeDelta = new Vector2(950, 36);
-                fbRect.anchoredPosition = new Vector2(0, -295);
+                fbRect.sizeDelta = new Vector2(1070, 34);
+                fbRect.anchoredPosition = new Vector2(0, -176);
                 TextMeshProUGUI fbText = fbGo.AddComponent<TextMeshProUGUI>();
                 fbText.font = fontVT323;
                 fbText.text = "";
-                fbText.fontSize = 26;
-                fbText.color = new Color(1f, 0.35f, 0.35f);
+                fbText.fontSize = 23;
+                fbText.color = new Color(1f, 0.4f, 0.4f);
                 fbText.alignment = TextAlignmentOptions.Center;
                 fbText.raycastTarget = false;
 
-                // 10. LevelSelectPanel (Popup chọn 5 màn chơi)
+                // 10. LevelSelectPanel (Popup chọn 5 màn chơi 1140x580)
                 GameObject levelSelectPanelGo = CreateUIObject("LevelSelectPanel", canvasGo.transform);
                 RectTransform lspRect = levelSelectPanelGo.GetComponent<RectTransform>();
                 lspRect.anchorMin = Vector2.zero;
@@ -435,12 +451,12 @@ namespace OneHitDown.EditorTools
                 lspRect.offsetMin = Vector2.zero;
                 lspRect.offsetMax = Vector2.zero;
                 Image dimmerImg = levelSelectPanelGo.AddComponent<Image>();
-                dimmerImg.color = new Color(0f, 0f, 0f, 0.85f);
+                dimmerImg.color = new Color(0.02f, 0.02f, 0.05f, 0.88f);
 
                 // Khung popup LevelSelect
                 GameObject lspBoxGo = CreateUIObject("LevelBox", levelSelectPanelGo.transform);
                 RectTransform lspBoxRect = lspBoxGo.GetComponent<RectTransform>();
-                lspBoxRect.sizeDelta = new Vector2(900, 480);
+                lspBoxRect.sizeDelta = new Vector2(1140, 580);
                 lspBoxRect.anchoredPosition = Vector2.zero;
                 Image lspBorder = lspBoxGo.AddComponent<Image>();
                 lspBorder.color = new Color(1f, 0.87f, 0f);
@@ -449,20 +465,20 @@ namespace OneHitDown.EditorTools
                 RectTransform lspInnerRect = lspInnerGo.GetComponent<RectTransform>();
                 lspInnerRect.anchorMin = Vector2.zero;
                 lspInnerRect.anchorMax = Vector2.one;
-                lspInnerRect.offsetMin = new Vector2(4, 4);
-                lspInnerRect.offsetMax = new Vector2(-4, -4);
+                lspInnerRect.offsetMin = new Vector2(5, 5);
+                lspInnerRect.offsetMax = new Vector2(-5, -5);
                 Image lspInnerBg = lspInnerGo.AddComponent<Image>();
-                lspInnerBg.color = new Color(0.125f, 0.125f, 0.18f);
+                lspInnerBg.color = new Color(0.08f, 0.09f, 0.15f);
 
                 // Tiêu đề LevelSelect
                 GameObject lspTitleGo = CreateUIObject("Title", lspInnerGo.transform);
                 RectTransform lspTitleRect = lspTitleGo.GetComponent<RectTransform>();
-                lspTitleRect.sizeDelta = new Vector2(800, 60);
-                lspTitleRect.anchoredPosition = new Vector2(0, 160);
+                lspTitleRect.sizeDelta = new Vector2(960, 56);
+                lspTitleRect.anchoredPosition = new Vector2(0, 224);
                 TextMeshProUGUI lspTitleTxt = lspTitleGo.AddComponent<TextMeshProUGUI>();
                 lspTitleTxt.font = fontVT323;
-                lspTitleTxt.text = "CHỌN MÀN CHƠI";
-                lspTitleTxt.fontSize = 54;
+                lspTitleTxt.text = "CHỌN MÀN CHƠI (1 - 5)";
+                lspTitleTxt.fontSize = 52;
                 lspTitleTxt.color = new Color(1f, 0.87f, 0f);
                 lspTitleTxt.alignment = TextAlignmentOptions.Center;
                 lspTitleTxt.raycastTarget = false;
@@ -470,7 +486,7 @@ namespace OneHitDown.EditorTools
                 // 5 nút Level
                 Button[] lvlBtns = new Button[5];
                 Image[] lockIcons = new Image[5];
-                float[] lvlX = { -280, -140, 0, 140, 280 };
+                float[] lvlX = { -420, -210, 0, 210, 420 };
 
                 for (int i = 0; i < 5; i++)
                 {
@@ -480,8 +496,8 @@ namespace OneHitDown.EditorTools
 
                     GameObject lvlBtnGo = CreateUIObject($"LevelBtn_{lvlNum:00}", lspInnerGo.transform);
                     RectTransform lvlBtnRect = lvlBtnGo.GetComponent<RectTransform>();
-                    lvlBtnRect.sizeDelta = new Vector2(100, 100);
-                    lvlBtnRect.anchoredPosition = new Vector2(lvlX[i], 10);
+                    lvlBtnRect.sizeDelta = new Vector2(120, 120);
+                    lvlBtnRect.anchoredPosition = new Vector2(lvlX[i], 20);
                     Image lvlBtnImg = lvlBtnGo.AddComponent<Image>();
                     lvlBtnImg.sprite = lvlSprite;
                     lvlBtnImg.preserveAspect = true;
@@ -491,8 +507,8 @@ namespace OneHitDown.EditorTools
                     // Icon Lock/Unlock ở góc
                     GameObject lockGo = CreateUIObject("LockIcon", lvlBtnGo.transform);
                     RectTransform lockRect = lockGo.GetComponent<RectTransform>();
-                    lockRect.sizeDelta = new Vector2(36, 36);
-                    lockRect.anchoredPosition = new Vector2(30, -30);
+                    lockRect.sizeDelta = new Vector2(32, 32);
+                    lockRect.anchoredPosition = new Vector2(36, -36);
                     Image lockImg = lockGo.AddComponent<Image>();
                     lockImg.sprite = (i == 0) ? unlockedIcon : lockedIcon;
                     lockImg.preserveAspect = true;
@@ -503,20 +519,20 @@ namespace OneHitDown.EditorTools
                 // Nút Back
                 GameObject backBtnGo = CreateUIObject("BackButton", lspInnerGo.transform);
                 RectTransform backBtnRect = backBtnGo.GetComponent<RectTransform>();
-                backBtnRect.sizeDelta = new Vector2(200, 50);
-                backBtnRect.anchoredPosition = new Vector2(0, -155);
+                backBtnRect.sizeDelta = new Vector2(310, 54);
+                backBtnRect.anchoredPosition = new Vector2(210, -210);
                 Image backImg = backBtnGo.AddComponent<Image>();
                 backImg.color = Color.white;
                 Button backBtn = backBtnGo.AddComponent<Button>();
 
                 GameObject backTxtGo = CreateUIObject("Text", backBtnGo.transform);
                 RectTransform backTxtRect = backTxtGo.GetComponent<RectTransform>();
-                backTxtRect.sizeDelta = new Vector2(180, 40);
+                backTxtRect.sizeDelta = new Vector2(290, 44);
                 backTxtRect.anchoredPosition = Vector2.zero;
                 TextMeshProUGUI backTxt = backTxtGo.AddComponent<TextMeshProUGUI>();
                 backTxt.font = fontVT323;
-                backTxt.text = "QUAY LẠI";
-                backTxt.fontSize = 28;
+                backTxt.text = "<< QUAY LẠI MENU";
+                backTxt.fontSize = 26;
                 backTxt.color = Color.black;
                 backTxt.alignment = TextAlignmentOptions.Center;
                 backTxt.raycastTarget = false;
@@ -524,13 +540,13 @@ namespace OneHitDown.EditorTools
                 // Feedback LevelSelect
                 GameObject lspFbGo = CreateUIObject("Feedback", lspInnerGo.transform);
                 RectTransform lspFbRect = lspFbGo.GetComponent<RectTransform>();
-                lspFbRect.sizeDelta = new Vector2(800, 30);
-                lspFbRect.anchoredPosition = new Vector2(0, -90);
+                lspFbRect.sizeDelta = new Vector2(980, 34);
+                lspFbRect.anchoredPosition = new Vector2(0, -144);
                 TextMeshProUGUI lspFbTxt = lspFbGo.AddComponent<TextMeshProUGUI>();
                 lspFbTxt.font = fontVT323;
                 lspFbTxt.text = "";
-                lspFbTxt.fontSize = 22;
-                lspFbTxt.color = new Color(1f, 0.35f, 0.35f);
+                lspFbTxt.fontSize = 24;
+                lspFbTxt.color = new Color(1f, 0.38f, 0.38f);
                 lspFbTxt.alignment = TextAlignmentOptions.Center;
                 lspFbTxt.raycastTarget = false;
 
