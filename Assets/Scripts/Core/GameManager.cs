@@ -15,6 +15,7 @@ using OneHitDown.Player;
 using OneHitDown.UI;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace OneHitDown.Core
 {
@@ -68,7 +69,10 @@ namespace OneHitDown.Core
 
         private int collectedRelics, totalScore, deathCount, timeScaleStep;
         private float elapsedTime;
-        private bool isGodMode, isResetting, showHitboxes;
+        private bool isGodMode, isResetting, showHitboxes, isLevelCompleted;
+        private Coroutine stageClearRoutine;
+        private GameObject stageClearOverlay;
+        private GameObject grandVictoryOverlay;
 
         public static GameManager Instance { get; private set; }
         public int TotalRelicsRequired => totalRelicsRequired;
@@ -122,7 +126,11 @@ namespace OneHitDown.Core
 
         private void Update()
         {
-            elapsedTime += Time.deltaTime;
+            if (!isLevelCompleted)
+            {
+                elapsedTime += Time.deltaTime;
+            }
+
             HandleHotkeys();
         }
 
@@ -202,12 +210,12 @@ namespace OneHitDown.Core
                 return;
             }
 
-            if (keyboard.rKey.wasPressedThisFrame)
+            if (keyboard.rKey.wasPressedThisFrame && !isLevelCompleted)
             {
                 ResetLevel();                                        // R: khôi phục toàn màn
             }
 
-            if (keyboard.escapeKey.wasPressedThisFrame || keyboard.pKey.wasPressedThisFrame)
+            if ((keyboard.escapeKey.wasPressedThisFrame || keyboard.pKey.wasPressedThisFrame) && !isLevelCompleted)
             {
                 if (pauseMenu != null) { pauseMenu.TogglePause(); }   // ESC/P: bảng tạm dừng
             }
@@ -256,7 +264,7 @@ namespace OneHitDown.Core
                 return;
             }
 
-            if (isResetting) { return; }
+            if (isResetting || isLevelCompleted) { return; }
 
             isResetting = true;
             deathCount++;
@@ -285,7 +293,11 @@ namespace OneHitDown.Core
         public void ResetLevel()
         {
             if (respawnRoutine != null) { StopCoroutine(respawnRoutine); respawnRoutine = null; }
+            if (stageClearRoutine != null) { StopCoroutine(stageClearRoutine); stageClearRoutine = null; }
+            if (stageClearOverlay != null) { stageClearOverlay.SetActive(false); }
+            if (grandVictoryOverlay != null) { grandVictoryOverlay.SetActive(false); }
 
+            isLevelCompleted = false;
             collectedRelics = 0;
             totalScore = 0;
 
@@ -298,7 +310,11 @@ namespace OneHitDown.Core
 
             for (int i = 0; i < activePlayers.Count; i++)
             {
-                if (activePlayers[i] != null) { activePlayers[i].Respawn(ResolveSpawnPoint(i)); }
+                if (activePlayers[i] != null)
+                {
+                    activePlayers[i].enabled = true;
+                    activePlayers[i].Respawn(ResolveSpawnPoint(i));
+                }
             }
 
             if (hudController != null) { hudController.RefreshHud(); }
@@ -344,16 +360,280 @@ namespace OneHitDown.Core
             if (hudController != null) { hudController.RefreshHud(); }
         }
 
-        /// <summary>Hoàn thành màn: mở khoá màn kế, phát nhạc chiến thắng và chạy hiệu ứng màn tròn.</summary>
+        /// <summary>Hoàn thành màn: mở khoá màn kế, phát nhạc thắng và hiện bảng Qua Màn / Phá Đảo.</summary>
         public void OnLevelCompleted()
         {
-            int nextLevelIndex = LevelIndex + 1;
-            GameSession.UnlockLevel(nextLevelIndex);
+            if (isLevelCompleted) { return; }
+            isLevelCompleted = true;
+
+            if (respawnRoutine != null) { StopCoroutine(respawnRoutine); respawnRoutine = null; }
+            if (pauseMenu != null && pauseMenu.IsPaused) { pauseMenu.SetPaused(false); }
+
+            GameSession.ClearPausedSession();
+
+            int currentLevel = LevelIndex;
+            int nextLevelIndex = currentLevel + 1;
+            GameSession.UnlockLevel(currentLevel);
+            GameSession.CurrentLevelIndex = Mathf.Clamp(nextLevelIndex, 1, LevelScenes.Length);
+
+            FreezePlayersForCelebration();
 
             if (audioManager != null) { audioManager.PlayJingle(VictoryJingle); }
 
-            if (irisTransition != null) { irisTransition.PlayTransition(() => LoadSceneOrMenu(nextLevelIndex)); }
-            else { LoadSceneOrMenu(nextLevelIndex); }
+            if (currentLevel < LevelScenes.Length)
+            {
+                ShowStageClearOverlay(currentLevel, nextLevelIndex);
+            }
+            else
+            {
+                ShowGrandVictoryOverlay();
+            }
+        }
+
+        private void FreezePlayersForCelebration()
+        {
+            for (int i = 0; i < activePlayers.Count; i++)
+            {
+                PlayerController player = activePlayers[i];
+                if (player == null) { continue; }
+                player.enabled = false;
+                if (player.Rigidbody != null)
+                {
+                    player.Rigidbody.linearVelocity = Vector2.zero;
+                    player.Rigidbody.simulated = false;
+                }
+            }
+        }
+
+        private Canvas ResolveUiCanvas()
+        {
+            if (hudController != null)
+            {
+                Canvas c = hudController.GetComponentInParent<Canvas>();
+                if (c != null) { return c; }
+            }
+
+            if (irisTransition != null)
+            {
+                Canvas c = irisTransition.GetComponentInParent<Canvas>();
+                if (c != null) { return c; }
+            }
+
+            return FindFirstObjectByType<Canvas>();
+        }
+
+        private Font ResolveUiFont(Canvas canvas)
+        {
+            if (hudController != null)
+            {
+                Text hudTxt = hudController.GetComponentInChildren<Text>(true);
+                if (hudTxt != null && hudTxt.font != null) { return hudTxt.font; }
+            }
+
+            if (canvas != null)
+            {
+                Text anyTxt = canvas.GetComponentInChildren<Text>(true);
+                if (anyTxt != null && anyTxt.font != null) { return anyTxt.font; }
+            }
+
+            return Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        }
+
+        private GameObject CreateOverlayRoot(string objName, Canvas canvas)
+        {
+            GameObject overlayGo = new GameObject(objName, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            overlayGo.transform.SetParent(canvas.transform, false);
+
+            // Đặt ngay trước IrisTransition để màn tròn đóng mở vẫn phủ trên cùng
+            if (irisTransition != null && irisTransition.transform.parent == canvas.transform)
+            {
+                overlayGo.transform.SetSiblingIndex(irisTransition.transform.GetSiblingIndex());
+            }
+
+            RectTransform rt = overlayGo.GetComponent<RectTransform>();
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
+
+            Image dim = overlayGo.GetComponent<Image>();
+            dim.color = new Color(0.02f, 0.03f, 0.07f, 0.84f);
+            dim.raycastTarget = true;
+            return overlayGo;
+        }
+
+        private void ShowStageClearOverlay(int currentLevel, int nextLevelIndex)
+        {
+            Canvas canvas = ResolveUiCanvas();
+            if (canvas == null)
+            {
+                ProceedWithTransition(nextLevelIndex);
+                return;
+            }
+
+            if (stageClearOverlay != null) { Destroy(stageClearOverlay); }
+
+            Font uiFont = ResolveUiFont(canvas);
+            stageClearOverlay = CreateOverlayRoot("StageClearOverlay", canvas);
+
+            RectTransform cardInner = RuntimeUiHelper.CreateFramedCard(
+                "StageClearCard", stageClearOverlay.transform, Vector2.zero, new Vector2(880f, 500f),
+                new Color(1f, 0.85f, 0f, 1f), new Color(0.08f, 0.10f, 0.19f, 0.98f), 6f);
+
+            RectTransform logoRt = RuntimeUiHelper.CreateUiRect("LogoBadge", cardInner, new Vector2(0f, 186f), new Vector2(72f, 72f));
+            Image logoImg = logoRt.gameObject.AddComponent<Image>();
+            logoImg.sprite = RuntimeUiHelper.GetTeam505LogoSprite();
+            logoImg.preserveAspect = true;
+            logoImg.raycastTarget = false;
+
+            RuntimeUiHelper.CreateLegacyText("ClearTitle", cardInner, uiFont, new Vector2(0f, 114f), new Vector2(820f, 64f),
+                $"QUA MÀN {currentLevel:00} THÀNH CÔNG!", 60, new Color(1f, 0.87f, 0f, 1f));
+
+            RuntimeUiHelper.CreateLegacyText("StageSubtitle", cardInner, uiFont, new Vector2(0f, 60f), new Vector2(800f, 40f),
+                $"KHU VỰC: {GameSession.GetLevelDisplayName(currentLevel)}", 34, new Color(0.45f, 0.94f, 1f, 1f));
+
+            int sec = Mathf.FloorToInt(elapsedTime);
+            string statsLine = $"CỔ VẬT: {collectedRelics}/{totalRelicsRequired}  |  ĐIỂM: {totalScore}  |  THỜI GIAN: {sec / 60:00}:{sec % 60:00}  |  CHẾT: {deathCount:00}";
+            RectTransform statsBox = RuntimeUiHelper.CreateFramedCard("StatsBox", cardInner, new Vector2(0f, -18f),
+                new Vector2(780f, 84f), new Color(0.24f, 0.34f, 0.56f, 1f), new Color(0.05f, 0.06f, 0.11f, 1f), 3f);
+            RuntimeUiHelper.CreateLegacyText("StatsText", statsBox, uiFont, Vector2.zero, new Vector2(750f, 70f),
+                statsLine, 30, Color.white);
+
+            Button nextBtn = RuntimeUiHelper.CreateLegacyButton(
+                "NextLevelButton", cardInner, uiFont, new Vector2(-120f, -152f), new Vector2(470f, 66f),
+                $"MÀN KẾ TIẾP: MÀN {nextLevelIndex:00} (2.5s)", 32, new Color(0.14f, 0.76f, 0.34f, 1f), Color.white,
+                () =>
+                {
+                    if (stageClearRoutine != null) { StopCoroutine(stageClearRoutine); stageClearRoutine = null; }
+                    ProceedWithTransition(nextLevelIndex);
+                });
+
+            RuntimeUiHelper.CreateLegacyButton(
+                "BackMenuButton", cardInner, uiFont, new Vector2(250f, -152f), new Vector2(230f, 66f),
+                "VỀ MENU CHÍNH", 30, new Color(0.26f, 0.30f, 0.44f, 1f), Color.white,
+                () =>
+                {
+                    if (stageClearRoutine != null) { StopCoroutine(stageClearRoutine); stageClearRoutine = null; }
+                    ProceedWithTransition(0);
+                });
+
+            Text nextBtnLabel = nextBtn.GetComponentInChildren<Text>(true);
+            if (stageClearRoutine != null) { StopCoroutine(stageClearRoutine); }
+            stageClearRoutine = StartCoroutine(StageClearCountdownRoutine(nextBtnLabel, nextLevelIndex));
+        }
+
+        private IEnumerator StageClearCountdownRoutine(Text nextBtnLabel, int nextLevelIndex)
+        {
+            float remaining = 2.5f;
+            int lastShownTenths = -1;
+            string nextName = GameSession.GetLevelDisplayName(nextLevelIndex);
+
+            while (remaining > 0f)
+            {
+                remaining -= Time.unscaledDeltaTime;
+                int tenths = Mathf.Max(0, Mathf.CeilToInt(remaining * 2f));
+                if (tenths != lastShownTenths && nextBtnLabel != null)
+                {
+                    lastShownTenths = tenths;
+                    float shownSec = tenths * 0.5f;
+                    nextBtnLabel.text = $"SANG MÀN {nextLevelIndex:00}: {nextName} ({shownSec:0.0}s)";
+                }
+
+                yield return null;
+            }
+
+            stageClearRoutine = null;
+            ProceedWithTransition(nextLevelIndex);
+        }
+
+        private void ShowGrandVictoryOverlay()
+        {
+            Canvas canvas = ResolveUiCanvas();
+            if (canvas == null)
+            {
+                GameSession.CurrentLevelIndex = 1;
+                ProceedWithTransition(0);
+                return;
+            }
+
+            if (grandVictoryOverlay != null) { Destroy(grandVictoryOverlay); }
+
+            Font uiFont = ResolveUiFont(canvas);
+            grandVictoryOverlay = CreateOverlayRoot("GrandVictoryOverlay", canvas);
+
+            RectTransform cardInner = RuntimeUiHelper.CreateFramedCard(
+                "VictoryCard", grandVictoryOverlay.transform, Vector2.zero, new Vector2(980f, 650f),
+                new Color(1f, 0.85f, 0f, 1f), new Color(0.08f, 0.06f, 0.16f, 0.99f), 6f);
+
+            // Cúp Vàng Pixel trung tâm + 2 Huy hiệu Nhóm 505 hai bên
+            RectTransform trophyRt = RuntimeUiHelper.CreateUiRect("TrophyIcon", cardInner, new Vector2(0f, 240f), new Vector2(92f, 92f));
+            Image trophyImg = trophyRt.gameObject.AddComponent<Image>();
+            trophyImg.sprite = RuntimeUiHelper.GetTrophySprite();
+            trophyImg.preserveAspect = true;
+            trophyImg.raycastTarget = false;
+
+            RectTransform leftShield = RuntimeUiHelper.CreateUiRect("ShieldLeft", cardInner, new Vector2(-380f, 240f), new Vector2(68f, 68f));
+            Image leftImg = leftShield.gameObject.AddComponent<Image>();
+            leftImg.sprite = RuntimeUiHelper.GetTeam505LogoSprite();
+            leftImg.preserveAspect = true;
+            leftImg.raycastTarget = false;
+
+            RectTransform rightShield = RuntimeUiHelper.CreateUiRect("ShieldRight", cardInner, new Vector2(380f, 240f), new Vector2(68f, 68f));
+            Image rightImg = rightShield.gameObject.AddComponent<Image>();
+            rightImg.sprite = RuntimeUiHelper.GetTeam505LogoSprite();
+            rightImg.preserveAspect = true;
+            rightImg.raycastTarget = false;
+
+            RuntimeUiHelper.CreateLegacyText("VictoryTitle", cardInner, uiFont, new Vector2(0f, 152f), new Vector2(920f, 66f),
+                "CHÚC MỪNG PHÁ ĐẢO ONE HIT DOWN!", 58, new Color(1f, 0.87f, 0f, 1f));
+
+            RuntimeUiHelper.CreateLegacyText("VictorySubtitle", cardInner, uiFont, new Vector2(0f, 102f), new Vector2(880f, 40f),
+                "BẠN ĐÃ CHINH PHỤC TOÀN BỘ 5 MÀN THỬ THÁCH!", 34, new Color(0.40f, 1f, 0.62f, 1f));
+
+            int sec = Mathf.FloorToInt(elapsedTime);
+            string modeStr = GameSession.IsTwoPlayerMode ? "2P CO-OP" : "1P SOLO";
+            string statsLine =
+                $"CHẾ ĐỘ: {modeStr}  |  CỔ VẬT MÀN 5: {collectedRelics}/{totalRelicsRequired}  |  ĐIỂM MÀN 5: {totalScore}\n" +
+                $"THỜI GIAN MÀN 5: {sec / 60:00}:{sec % 60:00}  |  SỐ LẦN CHẾT MÀN 5: {deathCount:00}";
+
+            RectTransform statsBox = RuntimeUiHelper.CreateFramedCard("VictoryStatsBox", cardInner, new Vector2(0f, 18f),
+                new Vector2(860f, 104f), new Color(0f, 0.82f, 0.94f, 1f), new Color(0.05f, 0.06f, 0.11f, 1f), 3f);
+            RuntimeUiHelper.CreateLegacyText("VictoryStatsText", statsBox, uiFont, Vector2.zero, new Vector2(830f, 92f),
+                statsLine, 29, Color.white);
+
+            // Bảng Vinh danh 5 thành viên Nhóm 505
+            RectTransform creditsBox = RuntimeUiHelper.CreateFramedCard("CreditsBox", cardInner, new Vector2(0f, -104f),
+                new Vector2(860f, 110f), new Color(1f, 0.6f, 0.1f, 1f), new Color(0.07f, 0.09f, 0.16f, 1f), 3f);
+            RuntimeUiHelper.CreateLegacyText("CreditsText", creditsBox, uiFont, Vector2.zero, new Vector2(830f, 98f),
+                "NHÓM PHÁT TRIỂN - NHÓM 505 (ĐẠI HỌC THỦY LỢI)\nTạ Anh Tuấn  -  Trần Đức Trung  -  Trần Văn Tuyên  -  Phan Văn Tú  -  Hoàng Thị Giang Uyên",
+                27, new Color(1f, 0.94f, 0.72f, 1f));
+
+            // Đợi người chơi bấm nút xác nhận để quay lại Main Menu
+            RuntimeUiHelper.CreateLegacyButton(
+                "ConfirmMenuButton", cardInner, uiFont, new Vector2(-150f, -226f), new Vector2(460f, 68f),
+                "XÁC NHẬN & VỀ MENU CHÍNH", 34, new Color(0.14f, 0.78f, 0.36f, 1f), Color.white,
+                () =>
+                {
+                    GameSession.CurrentLevelIndex = 1;
+                    ProceedWithTransition(0);
+                });
+
+            RuntimeUiHelper.CreateLegacyButton(
+                "ReplayFinalButton", cardInner, uiFont, new Vector2(260f, -226f), new Vector2(280f, 68f),
+                "CHƠI LẠI MÀN 5", 32, new Color(0.20f, 0.44f, 0.80f, 1f), Color.white,
+                ResetLevel);
+        }
+
+        private void ProceedWithTransition(int targetLevelIndex)
+        {
+            if (irisTransition != null)
+            {
+                irisTransition.PlayTransition(() => LoadSceneOrMenu(targetLevelIndex));
+            }
+            else
+            {
+                LoadSceneOrMenu(targetLevelIndex);
+            }
         }
 
         #endregion
