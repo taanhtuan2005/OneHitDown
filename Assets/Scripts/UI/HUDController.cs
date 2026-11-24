@@ -61,11 +61,28 @@ namespace OneHitDown.UI
             if (restartButton != null)
             {
                 restartButton.onClick.AddListener(OnRestartClicked);
+                // Ẩn nút Chơi lại trên HUD khi đang chơi để tránh bấm nhầm mất tiến độ (vẫn dùng phím R hoặc trong Pause Menu)
+                restartButton.gameObject.SetActive(false);
             }
 
             if (pauseButton != null)
             {
                 pauseButton.onClick.AddListener(OnPauseClicked);
+
+                Image pauseImg = pauseButton.GetComponent<Image>();
+                if (pauseImg != null)
+                {
+                    pauseImg.sprite = RuntimeUiHelper.GetPauseButtonSprite();
+                    pauseImg.color = Color.white;
+                    pauseImg.preserveAspect = true;
+                }
+
+                RectTransform pauseRt = pauseButton.GetComponent<RectTransform>();
+                if (pauseRt != null)
+                {
+                    pauseRt.anchoredPosition = new Vector2(-40f, -268f);
+                    pauseRt.sizeDelta = new Vector2(56f, 56f);
+                }
             }
         }
 
