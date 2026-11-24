@@ -125,14 +125,18 @@ namespace OneHitDown.UI
                     new Vector2(620f, 64f), "TẠM DỪNG TRÒ CHƠI", 50f, new Color(1f, 0.87f, 0f, 1f));
                 titleTmp.fontStyle = FontStyles.Bold;
 
-                // Khung thống kê màn chơi có nền & viền riêng dễ đọc
+                // Khung thống kê màn chơi có nền & viền riêng, tự co chữ vừa khít không bao giờ tràn khung
                 RectTransform statsInner = RuntimeUiHelper.CreateFramedCard(
-                    "PauseStatsBox", cardInner, new Vector2(0f, 128f), new Vector2(740f, 54f),
+                    "PauseStatsBox", cardInner, new Vector2(0f, 128f), new Vector2(780f, 54f),
                     new Color(0f, 0.78f, 0.90f, 0.85f), new Color(0.10f, 0.13f, 0.22f, 1f), 2.5f);
 
                 pauseStatsTmp = CreatePauseTmpText("PauseStatsTmp", statsInner, Vector2.zero,
-                    new Vector2(710f, 42f), string.Empty, 23f, Color.white);
+                    new Vector2(744f, 42f), string.Empty, 21f, Color.white);
                 pauseStatsTmp.fontStyle = FontStyles.Bold;
+                pauseStatsTmp.textWrappingMode = TextWrappingModes.NoWrap;
+                pauseStatsTmp.enableAutoSizing = true;
+                pauseStatsTmp.fontSizeMin = 15f;
+                pauseStatsTmp.fontSizeMax = 21f;
 
                 // Dòng gợi ý đáy bảng
                 CreatePauseTmpText("PauseHintTmp", cardInner, new Vector2(0f, -218f), new Vector2(760f, 36f),
@@ -244,7 +248,7 @@ namespace OneHitDown.UI
             int sec = Mathf.FloorToInt(gm.ElapsedTime);
             string timeStr = $"{sec / 60:00}:{sec % 60:00}";
             pauseStatsTmp.text =
-                $"<color=#66F2FF>MÀN {gm.LevelIndex:00}: {GameSession.GetLevelDisplayName(gm.LevelIndex)}</color>   |   CỔ VẬT {gm.CollectedRelicsCount}/{gm.TotalRelicsRequired}   |   TIME {timeStr}   |   <color=#FF8888>CHẾT {gm.DeathCount:00}</color>";
+                $"<color=#66F2FF>MÀN {gm.LevelIndex:00}: {GameSession.GetLevelDisplayName(gm.LevelIndex)}</color>  |  CỔ VẬT {gm.CollectedRelicsCount}/{gm.TotalRelicsRequired}  |  TIME {timeStr}  |  <color=#FF8888>CHẾT {gm.DeathCount:00}</color>";
         }
 
         #endregion
