@@ -72,6 +72,7 @@ namespace OneHitDown.EditorTools
         private const string SoulTetherPrefabPath = "Assets/Prefabs/SoulTether.prefab";
 
         private const string BananasPrefabPath = "Assets/Prefabs/Fruit_Bananas.prefab";
+        private const string BananasTexturePath = "Assets/Art/04_VatPham_dungOrkhong/PA1_Items/Fruits/Bananas.png";
         private const string MelonPrefabPath = "Assets/Prefabs/Fruit_Melon.prefab";
 
         private const string SawPrefabPath = "Assets/Prefabs/Saw.prefab";
@@ -328,6 +329,9 @@ namespace OneHitDown.EditorTools
                     pauseMenu = coreRigGo.GetComponentInChildren<PauseMenu>(true);
                     iris = coreRigGo.GetComponentInChildren<IrisTransition>(true);
                     audioMgr = coreRigGo.GetComponentInChildren<AudioManager>(true);
+
+                    // Icon Cổ Vật trên HUD: CoreRig mặc định là Kiwi (Màn 3) — Màn 2 đổi sang Chuối (Bananas.png).
+                    SetHudRelicIcon(hud, LoadSprite(BananasTexturePath, "Bananas_0"));
                 }
 
                 if (audioMgr == null)
@@ -446,6 +450,29 @@ namespace OneHitDown.EditorTools
             SerializedObject so = new SerializedObject(item);
             so.FindProperty("countsAsRelic").boolValue = countsAsRelic;
             so.ApplyModifiedProperties();
+        }
+
+        /// <summary>Gán sprite Cổ Vật của màn cho Image "relicIcon" trên HUD và ghi override vào instance CoreRig.</summary>
+        private static void SetHudRelicIcon(HUDController hud, Sprite sprite)
+        {
+            if (hud == null || sprite == null)
+            {
+                Debug.LogWarning($"{LogTag} Không gán được icon Cổ Vật trên HUD (thiếu HUDController hoặc sprite Bananas_0).");
+                return;
+            }
+
+            SerializedObject hudSo = new SerializedObject(hud);
+            UnityEngine.UI.Image icon = hudSo.FindProperty("relicIcon").objectReferenceValue as UnityEngine.UI.Image;
+            if (icon == null)
+            {
+                Debug.LogWarning($"{LogTag} HUDController chưa tham chiếu Image relicIcon.");
+                return;
+            }
+
+            icon.sprite = sprite;
+            icon.enabled = true;
+            PrefabUtility.RecordPrefabInstancePropertyModifications(icon);
+            EditorUtility.SetDirty(icon);
         }
 
         private static GameObject LoadPrefab(string path)
