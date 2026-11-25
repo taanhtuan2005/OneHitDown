@@ -82,7 +82,9 @@ namespace OneHitDown.EditorTools
         // Thông số bố cục dùng chung
         private const float FloorBottomY = -5f;          // Đáy khối sàn lối ngầm (ngoài khung hình)
         private const float SawFloorY = 1.05f;           // Tâm cưa sát mặt sàn (bán kính collider 1.05)
-        private const float TrampolineY = 0.45f;         // Đệm nhún đặt trên mặt sàn y = 0 (khớp Level_01)
+        private const float TrampolineY = 0f;            // Pivot sprite đệm ở đáy → đặt sát mặt sàn y = 0 (khớp Level_01)
+        private const float BacktrackSawY = 3f;          // Đáy cưa ray dọc 1.95 > đỉnh đầu nhân vật 1.55: đi bộ dưới sàn an toàn
+        private const float BacktrackSawRange = 3.5f;    // Quét y 3 → 6.5, đúng vùng bị hất ngược khi quay đầu
         private const float DeathPitBlockY = -0.6875f;   // Khối gạch 22px (1.375 unit) có mặt trên phẳng y = 0
         private static readonly Vector2 TiltedForward = new Vector2(0.35f, 0.937f); // Đệm da thú nghiêng về phía trước
         private static readonly Vector2 TiltedBack = new Vector2(-0.35f, 0.937f);   // Đệm da thú nghiêng ngược chiều
@@ -219,11 +221,12 @@ namespace OneHitDown.EditorTools
 
                 // --- Đoạn 1: Cửa hẻm núi ---
                 // Cưa ray sàn #1: người chơi canh nhịp nhảy qua (cao 2.1 tiles < tầm nhảy 3.5 tiles)
-                SpawnSaw(sawPrefab, trg, "Saw_Floor_1", new Vector3(12f, SawFloorY, 0f), PatrolAxis.Horizontal, 2.5f, 6f);
+                SpawnSaw(sawPrefab, trg, "Saw_Floor_1", new Vector3(12f, SawFloorY, 0f), PatrolAxis.Horizontal, 2.5f, 5f);
                 // Đệm da thú nghiêng #1: hất chéo lên hốc Chuối 1
                 SpawnTrampoline(trampPrefab, trg, "Trampoline_Tilted_1", new Vector3(22.5f, TrampolineY, 0f), TiltedForward);
-                // Cưa ray dọc đối diện đệm #1: nằm trên quỹ đạo bị hất ngược khi quay đầu (Backtrack)
-                SpawnSaw(sawPrefab, trg, "Saw_Backtrack_1", new Vector3(26f, 1.6f, 0f), PatrolAxis.Vertical, 2.2f, 4f);
+                // Cưa ray dọc phía TRÁI-TRÊN đệm #1: người chạy tới bay sang phải nên không chạm; người quay đầu
+                // (đang giữ phím trái) giẫm đệm bị hất lên rồi trôi về trái, lao thẳng vào cưa (Backtrack).
+                SpawnSaw(sawPrefab, trg, "Saw_Backtrack_1", new Vector3(19.5f, BacktrackSawY, 0f), PatrolAxis.Vertical, 2.2f, BacktrackSawRange);
 
                 // --- Đoạn 2: Hành lang gạch vỡ ---
                 // Hố gạch vỡ #1 (x 40..43): 2 khối Blocks ngụy trang, giẫm vào là sập vĩnh viễn
@@ -240,9 +243,9 @@ namespace OneHitDown.EditorTools
                 SpawnDeathPit(deathPitPrefab, trg, "DeathPit_Blocks_2B", new Vector3(65.25f, DeathPitBlockY, 0f));
 
                 // --- Đoạn 3: Đỉnh hẻm núi & Cổng Thần ---
-                SpawnSaw(sawPrefab, trg, "Saw_Floor_3", new Vector3(69f, SawFloorY, 0f), PatrolAxis.Horizontal, 3.2f, 6f);
+                SpawnSaw(sawPrefab, trg, "Saw_Floor_3", new Vector3(66.8f, SawFloorY, 0f), PatrolAxis.Horizontal, 3.2f, 4.5f);
                 SpawnTrampoline(trampPrefab, trg, "Trampoline_Tilted_3", new Vector3(76.5f, TrampolineY, 0f), TiltedForward);
-                SpawnSaw(sawPrefab, trg, "Saw_Backtrack_3", new Vector3(80f, 1.6f, 0f), PatrolAxis.Vertical, 2.4f, 4f);
+                SpawnSaw(sawPrefab, trg, "Saw_Backtrack_3", new Vector3(73.5f, BacktrackSawY, 0f), PatrolAxis.Vertical, 2.4f, BacktrackSawRange);
 
                 // --- Đoạn 4: Cầu gạch vỡ & bậc thang zíc-zắc ---
                 // Hố gạch vỡ #3 (x 100..103) ngay sau đỉnh hẻm
@@ -296,6 +299,12 @@ namespace OneHitDown.EditorTools
                     GameObject exitGo = (GameObject)PrefabUtility.InstantiatePrefab(exitPrefab);
                     exitGo.transform.SetParent(ig);
                     exitGo.transform.position = new Vector3(166f, 0f, 0f);
+                    // Sprite cúp có pivot ở tâm: nâng lên đúng nửa chiều cao để đáy cúp chạm mặt sàn y = 0.
+                    SpriteRenderer gateSr = exitGo.GetComponent<SpriteRenderer>();
+                    if (gateSr != null && gateSr.sprite != null)
+                    {
+                        exitGo.transform.position = new Vector3(166f, -gateSr.bounds.min.y, 0f);
+                    }
                     exitGate = exitGo.GetComponentInChildren<ExitGate>(true);
                 }
 
