@@ -511,6 +511,11 @@ namespace OneHitDown.Player
         /// </summary>
         private void CheckManualRespawnInput()
         {
+            if (GameManager.Instance != null)
+            {
+                return;
+            }
+
             bool rPressed = false;
 #if ENABLE_INPUT_SYSTEM
             var kb = UnityEngine.InputSystem.Keyboard.current;
@@ -758,10 +763,16 @@ namespace OneHitDown.Player
                 playerVFX.PlayDeathVFX(transform.position);
             }
 
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlaySFX("impactGlass_heavy_001");
+                AudioManager.Instance.PlaySFX("glass_004");
+            }
+
             OnPlayerDied?.Invoke(this);
 
-            // Tự động hồi sinh sau 1.2s trong Scene thử nghiệm Dev
-            if (gameObject.activeInHierarchy)
+            // Tự động hồi sinh sau 1.2s trong Scene thử nghiệm Dev (chỉ khi không có GameManager)
+            if (GameManager.Instance == null && gameObject.activeInHierarchy)
             {
                 if (respawnRoutine != null)
                 {
