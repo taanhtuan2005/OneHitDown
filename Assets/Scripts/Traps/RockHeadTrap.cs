@@ -32,6 +32,8 @@ namespace OneHitDown.Traps
         protected override void Update()
         {
             if (busy || hitbox == null) return;
+            // Tuần tra lên/xuống liên tục theo TrapBase khi không trong nhịp đập.
+            base.Update();
             Bounds bounds = hitbox.bounds;
             var hit = Physics2D.BoxCast(new Vector2(bounds.center.x, bounds.min.y),
                 new Vector2(detectionWidth, 0.05f), 0f, Vector2.down, detectionDistance, 1 << 9);
@@ -77,6 +79,8 @@ namespace OneHitDown.Traps
                 yield return null;
             }
             transform.position = startPosition;
+            // Đồng bộ lại pha tuần tra để đầu đá tiếp tục lên/xuống từ vị trí gốc, không bị giật.
+            patrolTimer = 0f;
             Play("Idle");
             busy = false;
         }
