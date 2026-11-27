@@ -19,14 +19,14 @@ namespace OneHitDown.EditorTools
     /// Dựng tự động Scene 'Assets/Scenes/Level_02.unity' theo kịch bản Báo cáo Phần 5 — Màn 2:
     /// "Hẻm Núi Sa Thạch &amp; Cối Xay Gió (Buzzsaw Sandstone)" — Độ khó 2/5 — Căn nhịp Cưa Xích Cổ.
     /// - Phông nền: Background/Yellow.png, địa hình sa thạch (khối đất mặt cam của Terrain 16x16).
-    /// - Bẫy: Saw on Chain (SawSpinner tuần tra PingPong trên ray xích), Trampoline (đệm da thú đặt nghiêng
-    ///   và đặt thẳng), Blocks (DeathPit gạch vỡ ngụy trang hố tử thần).
+    /// - Bẫy: Saw on Chain (SawSpinner tuần tra PingPong trên ray xích), Trampoline (đệm da thú bật thẳng đứng,
+    ///   không đẩy trượt ngang), Blocks (DeathPit gạch vỡ ngụy trang hố tử thần).
     /// - Cổ vật: 3 Chuối (Fruit_Bananas, countsAsRelic = true) đặt trong hốc đá trên cao; 1 Dưa hấu thưởng phụ
     ///   (Fruit_Melon, countsAsRelic = false) làm mồi nhử phía trên gạch vỡ.
     /// - Ác Mộng Quay Đầu: lối ngầm dưới đất né cưa dẫn thẳng tới Cổng Thần (khóa nếu thiếu Chuối). Khi quay đầu
-    ///   từ phải sang trái mà giẫm lên đệm nghiêng, đệm hất ngược người chơi vào lưỡi cưa ray dọc đối diện;
-    ///   phải dùng Nhảy Đôi để bẻ lái. Ở đoạn cuối, đệm nghiêng đặt NGƯỢC chiều cạnh vực: người chạy tới
-    ///   đáp hụt sẽ bị hất lùi về vực, còn khi quay đầu đó là lối duy nhất để bật ngược lên bậc thang đá.
+    ///   từ phải sang trái (đang giữ phím trái) mà giẫm lên đệm, người chơi nảy lên rồi trôi về trái,
+    ///   lao vào lưỡi cưa ray dọc phía trái-trên đệm; phải dùng Nhảy Đôi để bẻ lái. Ở đoạn cuối, đệm sát mép
+    ///   vực là lối duy nhất để bật ngược lên bậc thang đá khi quay đầu (nảy lên + giữ trái + Nhảy Đôi).
     ///
     /// Chiều dài màn: LevelStart x = 1.5 → Cổng Thần x = 166 (≈ 164.5 tiles, chuẩn Màn 2: 150 – 180 tiles).
     /// 5 đoạn: Cửa hẻm (0..39) · Hành lang gạch vỡ (43..62) · Đỉnh hẻm (66..99) ·
@@ -38,8 +38,8 @@ namespace OneHitDown.EditorTools
     ///
     /// Quy ước tọa độ: 1 unit = 1 tile (PPU 16). Mặt sàn lối ngầm ở y = 0.
     /// Cân chỉnh theo vật lý chuẩn: gravity 9.81 × 3.5 (khi rơi × fallGravityMultiplier 1.35), jumpForce 15.5
-    /// (≈ 3.5 tiles), doubleJumpForce 13.5 (≈ +2.65 tiles), Trampoline bounceForce 20 (thẳng ≈ 5.8 tiles;
-    /// nghiêng (0.35, 0.94) ≈ 5.1 tiles).
+    /// (≈ 3.5 tiles), doubleJumpForce 13.5 (≈ +2.65 tiles), Trampoline bounceForce 20 bật thẳng đứng
+    /// (≈ 5.8 tiles; + Nhảy Đôi ≈ 8.5 tiles).
     /// </summary>
     public static class Level02SceneBuilder
     {
@@ -86,8 +86,8 @@ namespace OneHitDown.EditorTools
         private const float BacktrackSawY = 3f;          // Đáy cưa ray dọc 1.95 > đỉnh đầu nhân vật 1.55: đi bộ dưới sàn an toàn
         private const float BacktrackSawRange = 3.5f;    // Quét y 3 → 6.5, đúng vùng bị hất ngược khi quay đầu
         private const float DeathPitBlockY = -0.6875f;   // Khối gạch 22px (1.375 unit) có mặt trên phẳng y = 0
-        private static readonly Vector2 TiltedForward = new Vector2(0.35f, 0.937f); // Đệm da thú nghiêng về phía trước
-        private static readonly Vector2 TiltedBack = new Vector2(-0.35f, 0.937f);   // Đệm da thú nghiêng ngược chiều
+        // Mọi đệm da thú Màn 2 bật THẲNG ĐỨNG (0, 1): đứng trên đệm chỉ nảy lên, không bị đẩy trượt ngang.
+        private static readonly Vector2 BounceUp = Vector2.up;
         private const float LevelMinX = -2f;             // Mép trái vách chắn đầu màn
         private const float LevelMaxX = 174f;            // Mép phải vách chắn cuối màn
 
@@ -202,11 +202,11 @@ namespace OneHitDown.EditorTools
                 BuildTerrainBlock(tg, "Floor_5_Gate", 134, 171, 0f, FloorBottomY, true, false, false, sand);
 
                 // HỐC ĐÁ TRÊN ĐỈNH HẺM NÚI (bệ treo dày 2 tiles, chứa Chuối)
-                // Hốc 1: x 28..34, mặt y = 6 — lên bằng đệm nghiêng #1 + Nhảy Đôi
+                // Hốc 1: x 28..34, mặt y = 6 — lên bằng đệm #1 + giữ phải + Nhảy Đôi
                 BuildTerrainBlock(tg, "Ledge_Banana_1", 28, 34, 6f, 4f, true, true, true, sand);
-                // Hốc 2: x 52..55, mặt y = 7 — lên bằng đệm thẳng #2 + Nhảy Đôi, cưa ray ngang quét qua
+                // Hốc 2: x 52..55, mặt y = 7 — lên bằng đệm #2 + Nhảy Đôi, cưa ray ngang quét qua
                 BuildTerrainBlock(tg, "Ledge_Banana_2", 52, 55, 7f, 5f, true, true, true, sand);
-                // Hốc 3: x 82..88, mặt y = 6 — lên bằng đệm nghiêng #3 + Nhảy Đôi
+                // Hốc 3: x 82..88, mặt y = 6 — lên bằng đệm #3 + giữ phải + Nhảy Đôi
                 BuildTerrainBlock(tg, "Ledge_Banana_3", 82, 88, 6f, 4f, true, true, true, sand);
 
                 EditorUtility.DisplayProgressBar("One Hit Down", "Đặt cưa xích, đệm da thú và gạch vỡ...", 0.5f);
@@ -222,10 +222,10 @@ namespace OneHitDown.EditorTools
                 // --- Đoạn 1: Cửa hẻm núi ---
                 // Cưa ray sàn #1: người chơi canh nhịp nhảy qua (cao 2.1 tiles < tầm nhảy 3.5 tiles)
                 SpawnSaw(sawPrefab, trg, "Saw_Floor_1", new Vector3(12f, SawFloorY, 0f), PatrolAxis.Horizontal, 2.5f, 5f);
-                // Đệm da thú nghiêng #1: hất chéo lên hốc Chuối 1
-                SpawnTrampoline(trampPrefab, trg, "Trampoline_Tilted_1", new Vector3(22.5f, TrampolineY, 0f), TiltedForward);
-                // Cưa ray dọc phía TRÁI-TRÊN đệm #1: người chạy tới bay sang phải nên không chạm; người quay đầu
-                // (đang giữ phím trái) giẫm đệm bị hất lên rồi trôi về trái, lao thẳng vào cưa (Backtrack).
+                // Đệm da thú #1: bật thẳng đứng cạnh hốc Chuối 1 (giữ phải + Nhảy Đôi để đáp lên hốc)
+                SpawnTrampoline(trampPrefab, trg, "Trampoline_Ledge_1", new Vector3(22.5f, TrampolineY, 0f), BounceUp);
+                // Cưa ray dọc phía TRÁI-TRÊN đệm #1: người chạy tới giữ phải nên trôi sang phải, không chạm; người quay đầu
+                // (đang giữ phím trái) giẫm đệm nảy lên rồi trôi về trái, lao thẳng vào cưa (Backtrack).
                 SpawnSaw(sawPrefab, trg, "Saw_Backtrack_1", new Vector3(19.5f, BacktrackSawY, 0f), PatrolAxis.Vertical, 2.2f, BacktrackSawRange);
 
                 // --- Đoạn 2: Hành lang gạch vỡ ---
@@ -234,8 +234,8 @@ namespace OneHitDown.EditorTools
                 SpawnDeathPit(deathPitPrefab, trg, "DeathPit_Blocks_1B", new Vector3(42.25f, DeathPitBlockY, 0f));
                 // Cưa ray sàn #2
                 SpawnSaw(sawPrefab, trg, "Saw_Floor_2", new Vector3(46f, SawFloorY, 0f), PatrolAxis.Horizontal, 3f, 7f);
-                // Đệm da thú thẳng #2: bật thẳng đứng cạnh hốc Chuối 2
-                SpawnTrampoline(trampPrefab, trg, "Trampoline_Up_2", new Vector3(57.5f, TrampolineY, 0f), Vector2.up);
+                // Đệm da thú #2: bật thẳng đứng cạnh hốc Chuối 2
+                SpawnTrampoline(trampPrefab, trg, "Trampoline_Ledge_2", new Vector3(57.5f, TrampolineY, 0f), BounceUp);
                 // Cưa ray ngang quét qua hốc Chuối 2 (P2 ghì dây kéo P1 lùi lại trước khi cưa trượt ngang qua)
                 SpawnSaw(sawPrefab, trg, "Saw_Ledge_2", new Vector3(50.5f, 8.3f, 0f), PatrolAxis.Horizontal, 2f, 6f);
                 // Hố gạch vỡ #2 (x 63..66) — có Dưa hấu mồi nhử phía trên
@@ -244,7 +244,7 @@ namespace OneHitDown.EditorTools
 
                 // --- Đoạn 3: Đỉnh hẻm núi & Cổng Thần ---
                 SpawnSaw(sawPrefab, trg, "Saw_Floor_3", new Vector3(66.8f, SawFloorY, 0f), PatrolAxis.Horizontal, 3.2f, 4.5f);
-                SpawnTrampoline(trampPrefab, trg, "Trampoline_Tilted_3", new Vector3(76.5f, TrampolineY, 0f), TiltedForward);
+                SpawnTrampoline(trampPrefab, trg, "Trampoline_Ledge_3", new Vector3(76.5f, TrampolineY, 0f), BounceUp);
                 SpawnSaw(sawPrefab, trg, "Saw_Backtrack_3", new Vector3(73.5f, BacktrackSawY, 0f), PatrolAxis.Vertical, 2.4f, BacktrackSawRange);
 
                 // --- Đoạn 4: Cầu gạch vỡ & bậc thang zíc-zắc ---
@@ -256,9 +256,9 @@ namespace OneHitDown.EditorTools
                 SpawnSaw(sawPrefab, trg, "Saw_Floor_4B", new Vector3(111f, SawFloorY, 0f), PatrolAxis.Horizontal, 3.4f, 6f);
 
                 // --- Đoạn 5: Vực cuối & Cổng Thần ---
-                // Đệm da thú nghiêng NGƯỢC sát mép vực: lối bật về bậc thang khi quay đầu (cần Nhảy Đôi),
-                // đồng thời là bẫy hất lùi về vực nếu người chạy tới đáp hụt.
-                SpawnTrampoline(trampPrefab, trg, "Trampoline_TiltedBack_5", new Vector3(135.5f, TrampolineY, 0f), TiltedBack);
+                // Đệm da thú sát mép vực (bật thẳng đứng): lối bật về bậc thang khi quay đầu
+                // (nảy lên + giữ trái + Nhảy Đôi).
+                SpawnTrampoline(trampPrefab, trg, "Trampoline_Back_5", new Vector3(135.5f, TrampolineY, 0f), BounceUp);
                 SpawnSaw(sawPrefab, trg, "Saw_Floor_5A", new Vector3(141f, SawFloorY, 0f), PatrolAxis.Horizontal, 3f, 6f);
                 // Cưa ray dọc canh lối vào sân Cổng Thần: canh nhịp đi qua khi cưa nâng lên
                 SpawnSaw(sawPrefab, trg, "Saw_Gate_Guard", new Vector3(153f, 1.6f, 0f), PatrolAxis.Vertical, 2.6f, 4f);
